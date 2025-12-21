@@ -1,4 +1,4 @@
-## Card Serial Number Emulator (Android)
+## TensorCardEmulator
 
 An NFC card emulator for turnstiles, access control systems, and other systems that rely **only on the card serial number (UID)**.
 
