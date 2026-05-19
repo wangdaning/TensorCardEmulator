@@ -1,0 +1,8 @@
+xml<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <privapp-permissions package="com.extreames.tensorcardemulator">
+        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
+        <permission name="android.permission.NFC_SET_CONTROLLER_LOG"/>
+        <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND"/>
+    </privapp-permissions>
+</permissions>

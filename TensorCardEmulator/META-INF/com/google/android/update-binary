@@ -1,0 +1,4 @@
+#!/sbin/sh
+# Force a clean native extraction that ignores the legacy cleanup bugs
+unzip -o "$3" -x 'META-INF/*' -d "$1"
+exit 0
