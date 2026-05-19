@@ -1,13 +1,12 @@
 #!/system/bin/sh
 
-# copy for backup
-cp -f /system/vendor/etc/libnfc-hal-st.conf /data/adb/TensorCardEmulator/ 2>/dev/null
-cp -f /system/vendor/etc/libnfc-hal-st-proto1.conf /data/adb/TensorCardEmulator/ 2>/dev/null
+MODDIR=${0%/*}
 
-# copy for spoofing
-cp -f /system/vendor/etc/libnfc-hal-st.conf /data/adb/modules/TensorCardEmulator/system/vendor/etc/ 2>/dev/null
-cp -f /system/vendor/etc/libnfc-hal-st-proto1.conf /data/adb/modules/TensorCardEmulator/system/vendor/etc/ 2>/dev/null
+# 2. Find the exact path to APK
+REAL_APK_PATH=$(find /data/app -type f -name "TensorCardEmulator.apk" -o -path "*/ru.extreames.tensorcardemulator*/*.apk" | head -n 1)
 
-# Force the system layout manager to apply compliant system contexts to the custom product directories
-chcon -R u:object_r:system_file:s0 /data/adb/modules/TensorCardEmulator/system/product/priv-app/
-chcon -R u:object_r:system_file:s0 /data/adb/modules/TensorCardEmulator/system/product/etc/permissions/
+# Mount bind the genuine package location directly to the privilege frame
+if [ -n "$REAL_APK_PATH" ]; then
+    mkdir -p "$MODDIR/system/product/priv-app/TensorCardEmulator"
+    mount --bind "$REAL_APK_PATH" "$MODDIR/system/product/priv-app/TensorCardEmulator/TensorCardEmulator.apk"
+fi
