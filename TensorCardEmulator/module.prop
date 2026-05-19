@@ -1,6 +1,6 @@
-id=TensorCardEmulator
+id=tensor_card_emulator
 name=TensorCardEmulator
-version=1.0.0
+version=1.0.1
 versionCode=100
-author=extreames
+author=extreames updated by wangdaning
 description=Tensor Card Emulator
