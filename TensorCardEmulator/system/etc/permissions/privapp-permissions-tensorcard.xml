@@ -1,15 +1,9 @@
 xml<?xml version="1.0" encoding="utf-8"?>
 <permissions>
     <privapp-permissions package="ru.extreames.tensorcardemulator">
-        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
-        <permission name="android.permission.NFC_SET_CONTROLLER_LOG"/>
-        <permission name="android.permission.START_ACTIVITIES_FROM_BACKGROUND"/>
-		
-		<!-- Core Android NFC Controller Privileges -->
         <permission name="android.permission.NFC"/>
         <permission name="android.permission.BIND_NFC_SERVICE"/>
-        
-        <!-- Payment & Routing Whitelist Permissions -->
+        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
         <permission name="android.permission.NFC_PREFERRED_PAYMENT_INFO"/>
         <permission name="android.permission.OMADRM"/>
     </privapp-permissions>
