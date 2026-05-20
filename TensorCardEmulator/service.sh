@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-MODDIR="${0%/*}"
+MODDIR="/data/adb/modules/TensorCardEmulator"
 PKG="ru.extreames.tensorcardemulator"
 LOG="$MODDIR/service.log"
 
