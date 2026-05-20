@@ -15,7 +15,7 @@ done
 sleep 8
 
 # Re-copy NFC vendor configs in case they changed
-MODPATH="/data/adb/modules/tensor_card_emulator"
+MODPATH="/data/adb/modules/TensorCardEmulator"
 
 for CONF in libnfc-hal-st.conf libnfc-hal-st-proto1.conf; do
     if [ -f "/vendor/etc/$CONF" ]; then
