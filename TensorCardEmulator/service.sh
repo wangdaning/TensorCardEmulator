@@ -14,8 +14,20 @@ done
 # Extra grace period for PackageManager to finish scanning
 sleep 8
 
+# Re-copy NFC vendor configs in case they changed
+MODPATH="/data/adb/modules/tensor_card_emulator"
+
+for CONF in libnfc-hal-st.conf libnfc-hal-st-proto1.conf; do
+    if [ -f "/vendor/etc/$CONF" ]; then
+        cp -f "/vendor/etc/$CONF" "$MODPATH/system/vendor/etc/$CONF"
+        echo "[$(date)] Refreshed $CONF from vendor"
+    else
+        echo "[$(date)] Warning: /vendor/etc/$CONF not found, skipping"
+    fi
+done
+
 # Install APK
-APK="$MODDIR/app.apk"
+APK="$MODDIR/common/TensorCardEmulator.apk"
 if ! pm list packages 2>/dev/null | grep -q "^package:${PKG}$"; then
     if [ -f "$APK" ]; then
         echo "[$(date)] Installing APK..."

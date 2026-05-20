@@ -40,11 +40,23 @@ mkdir -p /data/adb/TensorCardEmulator
 mkdir -p "$MODPATH/system/vendor/etc"
 
 # copy for backup
-cp -f /vendor/etc/libnfc-hal-st.conf /data/adb/TensorCardEmulator/ 2>/dev/null
-cp -f /vendor/etc/libnfc-hal-st-proto1.conf /data/adb/TensorCardEmulator/ 2>/dev/null
+if cp -f /vendor/etc/libnfc-hal-st.conf /data/adb/TensorCardEmulator/ 2>/dev/null; then
+    ui_print "- Backed up libnfc-hal-st.conf"
+else
+    ui_print "! Warning: libnfc-hal-st.conf not found, NFC config spoofing may not work"
+fi
+
+if cp -f /vendor/etc/libnfc-hal-st-proto1.conf /data/adb/TensorCardEmulator/ 2>/dev/null; then
+    ui_print "- Backed up libnfc-hal-st-proto1.conf"
+else
+    ui_print "! Warning: libnfc-hal-st-proto1.conf not found"
+fi
 
 # copy for spoofing
 cp -f /vendor/etc/libnfc-hal-st.conf "$MODPATH/system/vendor/etc/" 2>/dev/null
 cp -f /vendor/etc/libnfc-hal-st-proto1.conf "$MODPATH/system/vendor/etc/" 2>/dev/null
 
+set_perm "$MODPATH/uninstall.sh" root root 0755
+
 ui_print "- Extraction and configuration successful!"
+
