@@ -45,21 +45,21 @@ jobs:
       - name: Package Flashable Module ZIP
         run: |
           cd MagiskModule
-          zip -r ../TensorCardEmulator1.0.1.zip ./*
+          zip -r "../${{ github.ref_name }}.zip" ./*
           cd ..
-          echo "Module compilation bundle prepared."
+          echo "Module compilation bundle prepared as ${{ github.ref_name }}.zip"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: TensorCardEmulator1.0.1
-          path: TensorCardEmulator1.0.1.zip
+          name: ${{ github.ref_name }}
+          path: ${{ github.ref_name }}.zip
 
       - name: Create GitHub Release Artifact
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: TensorCardEmulator1.0.1.zip
+          files: ${{ github.ref_name }}.zip
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
