@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <privapp-permissions package="ru.extreames.tensorcardemulator">
+        <permission name="android.permission.NFC"/>
+        <permission name="android.permission.BIND_NFC_SERVICE"/>
+        <permission name="android.permission.NFC_PREFERRED_PAYMENT_SERVICE"/>
+        <permission name="android.permission.NFC_PREFERRED_PAYMENT_INFO"/>
+        <permission name="android.permission.CHANGE_NFC_STATE"/>
+    </privapp-permissions>
+</permissions>
