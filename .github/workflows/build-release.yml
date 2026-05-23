@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: TensorCardEmulatorv1.0.1
-          path: TensorCardEmulatorv1.0.1.zip
+          path: MagiskModule/
           if-no-files-found: error
 
       - name: Create GitHub Release Artifact
@@ -62,6 +62,7 @@ jobs:
         with:
           files: TensorCardEmulatorv1.0.1.zip
           name: "Release ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: false
         env:
