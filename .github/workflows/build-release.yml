@@ -1,0 +1,68 @@
+name: Build and Release TensorCardEmulator
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x gradlew
+
+      - name: Compile App APK
+        run: ./gradlew assembleRelease
+        
+      - name: Stage Module Components
+        run: |
+          mkdir -p MagiskModule/common
+          # Find the compiled release APK and rename it directly into the target payload path
+          APK_PATH=$(find app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" MagiskModule/common/TensorCardEmulator.apk
+            echo "Staged APK successfully."
+          else
+            echo "Error: Compiled APK could not be found!" && exit 1
+          fi
+
+      - name: Package Flashable Module ZIP
+        run: |
+          cd MagiskModule
+          zip -r ../TensorCardEmulator1.0.1.zip ./*
+          cd ..
+          echo "Module compilation bundle prepared."
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TensorCardEmulator1.0.1
+          path: TensorCardEmulator1.0.1.zip
+
+      - name: Create GitHub Release Artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TensorCardEmulator1.0.1.zip
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
