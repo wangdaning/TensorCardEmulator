@@ -45,14 +45,14 @@ jobs:
       - name: Package Flashable Module ZIP
         run: |
           cd MagiskModule
-          zip -r ../TensorCardEmulatorv1.0.1.zip ./*
+          zip -r "../TensorCardEmulatorv1.0.1.zip" ./*
           cd ..
           echo "Module compilation bundle prepared"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ github.ref_name }}-artifact-summary
+          name: TensorCardEmulatorv1.0.1
           path: TensorCardEmulatorv1.0.1.zip
           if-no-files-found: error
 
