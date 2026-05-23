@@ -3,8 +3,8 @@ name: Build and Release TensorCardEmulator
 on:
   push:
     tags:
-      - 'v*' # Triggers the release logic automatically when pushing a version tag (e.g., v1.0.0)
-  workflow_dispatch: # Allows manual pipeline triggering from the GitHub Actions tab
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,13 +13,11 @@ jobs:
       contents: write
 
     steps:
-      # 1. Check out the project codebase using v6 (Node 24 Compatible)
       - name: Checkout Repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # 2. Set up Java Environment using v5 (Node 24 Compatible)
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -27,15 +25,12 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      # 3. Make the Gradle execution wrapper runnable
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
 
-      # 4. Compile the Release APK container
       - name: Compile App APK
         run: ./gradlew assembleRelease
 
-      # 5. Locate and position the fresh APK into your Module Staging Area
       - name: Stage Module Components
         run: |
           mkdir -p MagiskModule/common
@@ -47,7 +42,6 @@ jobs:
             echo "Error: Compiled APK could not be found!" && exit 1
           fi
 
-      # 6. Compress the staging directory into the specifically named flashable module archive
       - name: Package Flashable Module ZIP
         run: |
           cd MagiskModule
@@ -55,14 +49,12 @@ jobs:
           cd ..
           echo "Module compilation bundle prepared."
 
-      # 7. Upload the compiled artifacts as an Actions run attachment
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: TensorCardEmulator1.0.1
           path: TensorCardEmulator1.0.1.zip
 
-      # 8. Create GitHub Release and attach the specifically named ZIP if a version tag triggered the run
       - name: Create GitHub Release Artifact
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
