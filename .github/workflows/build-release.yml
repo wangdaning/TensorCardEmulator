@@ -27,8 +27,13 @@ jobs:
 
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
-
-      - name: Compile App APK
+        
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PATH: keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
       - name: Stage Module Components
