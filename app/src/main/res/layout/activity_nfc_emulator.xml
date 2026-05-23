@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0F0F0F"
-	android:fitsSystemWindows="true"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <LinearLayout
@@ -131,39 +131,57 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnToggle"
+                        <LinearLayout
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:text="@string/SIMULATE"
-                            android:textAllCaps="false"
-                            android:textColor="#0A0A0A"
-                            android:textSize="15sp"
-                            android:stateListAnimator="@null"
-                            app:backgroundTint="#E5E5E5"
-                            app:cornerRadius="12dp"
-                            app:elevation="0dp" />
+                            android:orientation="vertical">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnScan"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:text="@string/SCAN"
-                            android:textAllCaps="false"
-                            android:textColor="#A3A3A3"
-                            android:textSize="15sp"
-                            android:stateListAnimator="@null"
-                            app:strokeColor="#2A2A2A"
-                            app:cornerRadius="12dp"
-                            app:elevation="0dp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/EMULATION"
+                                android:textColor="#E5E5E5"
+                                android:textSize="15sp"
+                                android:fontFamily="sans-serif-medium" />
+
+                            <TextView
+                                android:id="@+id/masterToggleSubtext"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/SELECT_CARD_FIRST"
+                                android:textColor="#525252"
+                                android:textSize="12sp"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/masterSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:enabled="false"
+                            android:checked="false" />
 
                     </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnScan"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/SCAN"
+                        android:textAllCaps="false"
+                        android:textColor="#A3A3A3"
+                        android:textSize="15sp"
+                        android:stateListAnimator="@null"
+                        app:strokeColor="#2A2A2A"
+                        app:cornerRadius="12dp"
+                        app:elevation="0dp" />
 
                 </LinearLayout>
 

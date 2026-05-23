@@ -1,15 +1,15 @@
 package ru.extreames.tensorcardemulator.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +20,14 @@ import ru.extreames.tensorcardemulator.model.SavedCard;
 public class SavedCardsAdapter extends RecyclerView.Adapter<SavedCardsAdapter.ViewHolder> {
 
     public interface Listener {
-        void onSimulate(SavedCard card);
+        void onCardSelected(SavedCard card);   // toggle switched on
+        void onCardDeselected(SavedCard card); // toggle switched off
         void onDelete(SavedCard card);
         void onRename(SavedCard card);
     }
 
     private final List<SavedCard> cards = new ArrayList<>();
-    private int activeCardId = -1;
+    private int selectedCardId = -1;
     private final Listener listener;
 
     public SavedCardsAdapter(Listener listener) {
@@ -39,9 +40,13 @@ public class SavedCardsAdapter extends RecyclerView.Adapter<SavedCardsAdapter.Vi
         notifyDataSetChanged();
     }
 
-    public void setActiveCardId(int id) {
-        this.activeCardId = id;
+    public void setSelectedCardId(int id) {
+        this.selectedCardId = id;
         notifyDataSetChanged();
+    }
+
+    public int getSelectedCardId() {
+        return selectedCardId;
     }
 
     @NonNull
@@ -55,15 +60,24 @@ public class SavedCardsAdapter extends RecyclerView.Adapter<SavedCardsAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SavedCard card = cards.get(position);
-        boolean isActive = card.id == activeCardId;
+        boolean isSelected = card.id == selectedCardId;
 
         holder.cardName.setText(card.name);
         holder.cardUid.setText(card.uid);
-        holder.activeBadge.setVisibility(isActive ? View.VISIBLE : View.GONE);
+        holder.activeBadge.setVisibility(isSelected ? View.VISIBLE : View.GONE);
+        holder.cardSwitch.setOnCheckedChangeListener(null);
+        holder.cardSwitch.setChecked(isSelected);
 
-        holder.btnSimulate.setText(isActive ? R.string.RESTORE : R.string.SIMULATE);
-        holder.btnSimulate.setOnClickListener(v -> listener.onSimulate(card));
+        holder.cardSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                listener.onCardSelected(card);
+            } else {
+                listener.onCardDeselected(card);
+            }
+        });
+
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(card));
+
         holder.cardName.setOnLongClickListener(v -> {
             listener.onRename(card);
             return true;
@@ -77,14 +91,15 @@ public class SavedCardsAdapter extends RecyclerView.Adapter<SavedCardsAdapter.Vi
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView cardName, cardUid, activeBadge;
-        MaterialButton btnSimulate, btnDelete;
+        MaterialSwitch cardSwitch;
+        ImageView btnDelete;
 
         ViewHolder(View view) {
             super(view);
             cardName = view.findViewById(R.id.cardName);
             cardUid = view.findViewById(R.id.cardUid);
             activeBadge = view.findViewById(R.id.activeBadge);
-            btnSimulate = view.findViewById(R.id.btnSimulate);
+            cardSwitch = view.findViewById(R.id.cardSwitch);
             btnDelete = view.findViewById(R.id.btnDelete);
         }
     }

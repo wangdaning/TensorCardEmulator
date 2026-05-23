@@ -16,4 +16,8 @@
     <string name="DELETE">Delete</string>
     <string name="RENAME">Rename</string>
     <string name="CARD_NAME_HINT">Card name</string>
+    <string name="EMULATION">Emulation</string>
+    <string name="SELECT_CARD_FIRST">Select a card below first</string>
+    <string name="TOGGLE_TO_EMULATE">Toggle to start emulating</string>
+    <string name="EMULATING_NOW">Emulating card…</string>
 </resources>

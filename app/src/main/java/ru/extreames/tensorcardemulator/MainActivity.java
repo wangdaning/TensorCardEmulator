@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,10 +20,9 @@ import androidx.core.view.WindowCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.List;
-import java.util.Objects;
 
 import ru.extreames.tensorcardemulator.adapter.SavedCardsAdapter;
 import ru.extreames.tensorcardemulator.model.AppDatabase;
@@ -32,14 +32,14 @@ import ru.extreames.tensorcardemulator.nfc.NFCScanner;
 import ru.extreames.tensorcardemulator.prefs.PrefsManager;
 import ru.extreames.tensorcardemulator.root.Shell;
 
-
-
 public class MainActivity extends AppCompatActivity {
+
     private boolean isSimulating = false;
+    private int selectedCardId = -1;
     private int activeCardId = -1;
 
-    private MaterialButton btnToggle;
-    private MaterialButton btnScan;
+    private MaterialSwitch masterSwitch;
+    private TextView masterToggleSubtext;
     private TextView statusText;
     private ImageView statusIcon;
     private TextView serialTextView;
@@ -63,48 +63,60 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onCreate(savedInstanceState);
-		WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-		getWindow().setStatusBarColor(Color.TRANSPARENT);
-        this.setContentView(R.layout.activity_nfc_emulator);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        setContentView(R.layout.activity_nfc_emulator);
 
-        this.btnToggle = findViewById(R.id.btnToggle);
-        this.btnScan = findViewById(R.id.btnScan);
-        this.statusText = findViewById(R.id.statusText);
-        this.statusIcon = findViewById(R.id.statusIcon);
-        this.serialTextView = findViewById(R.id.serialTextView);
-        this.btnSaveCard = findViewById(R.id.btnSaveCard);
-        this.emptyCardsText = findViewById(R.id.emptyCardsText);
-        this.savedCardsRecyclerView = findViewById(R.id.savedCardsRecyclerView);
+        masterSwitch = findViewById(R.id.masterSwitch);
+        masterToggleSubtext = findViewById(R.id.masterToggleSubtext);
+        statusText = findViewById(R.id.statusText);
+        statusIcon = findViewById(R.id.statusIcon);
+        serialTextView = findViewById(R.id.serialTextView);
+        btnSaveCard = findViewById(R.id.btnSaveCard);
+        emptyCardsText = findViewById(R.id.emptyCardsText);
+        savedCardsRecyclerView = findViewById(R.id.savedCardsRecyclerView);
+        View btnScan = findViewById(R.id.btnScan);
 
-        this.pulseAnimation = new AlphaAnimation(1.0f, 0.4f);
-        this.pulseAnimation.setDuration(1000);
-        this.pulseAnimation.setRepeatCount(Animation.INFINITE);
-        this.pulseAnimation.setRepeatMode(Animation.REVERSE);
+        pulseAnimation = new AlphaAnimation(1.0f, 0.4f);
+        pulseAnimation.setDuration(1000);
+        pulseAnimation.setRepeatCount(Animation.INFINITE);
+        pulseAnimation.setRepeatMode(Animation.REVERSE);
 
-        this.db = AppDatabase.getInstance(this);
-        this.cardEmulator = new CardEmulator();
-        this.prefs = new PrefsManager(this, "SAVED_CARD");
+        db = AppDatabase.getInstance(this);
+        cardEmulator = new CardEmulator();
+        prefs = new PrefsManager(this, "SAVED_CARD");
 
-        this.serialTextView.setText(
-            this.prefs.getValue("SERIAL_NUMBER", getString(R.string.DEFAULT_SERIAL_NUMBER))
-        );
+        serialTextView.setText(prefs.getValue("SERIAL_NUMBER",
+                getString(R.string.DEFAULT_SERIAL_NUMBER)));
 
-        this.nfcScanner = new NFCScanner(this, serialNumber -> runOnUiThread(() -> {
+        nfcScanner = new NFCScanner(this, serialNumber -> runOnUiThread(() -> {
             prefs.setValue("SERIAL_NUMBER", serialNumber);
             serialTextView.setText(serialNumber);
             nfcScanner.stopScan(this);
             toggleScanning(false);
         }));
 
-        this.adapter = new SavedCardsAdapter(new SavedCardsAdapter.Listener() {
+        adapter = new SavedCardsAdapter(new SavedCardsAdapter.Listener() {
             @Override
-            public void onSimulate(SavedCard card) {
-                if (isSimulating && card.id == activeCardId) {
+            public void onCardSelected(SavedCard card) {
+                selectedCardId = card.id;
+                adapter.setSelectedCardId(selectedCardId);
+                prefs.setValue("SERIAL_NUMBER", card.uid);
+                serialTextView.setText(card.uid);
+                updateMasterSwitchState();
+                if (isSimulating) {
                     doRestore();
-                } else {
-                    prefs.setValue("SERIAL_NUMBER", card.uid);
-                    serialTextView.setText(card.uid);
                     doSimulate(card.uid, card.id);
+                }
+            }
+
+            @Override
+            public void onCardDeselected(SavedCard card) {
+                if (card.id == selectedCardId) {
+                    selectedCardId = -1;
+                    adapter.setSelectedCardId(-1);
+                    updateMasterSwitchState();
+                    if (isSimulating) doRestore();
                 }
             }
 
@@ -115,7 +127,12 @@ public class MainActivity extends AppCompatActivity {
                     .setMessage("Delete \"" + card.name + "\"?")
                     .setPositiveButton("Delete", (d, w) -> {
                         db.savedCardDao().delete(card);
-                        if (card.id == activeCardId) activeCardId = -1;
+                        if (card.id == selectedCardId) {
+                            selectedCardId = -1;
+                            adapter.setSelectedCardId(-1);
+                            updateMasterSwitchState();
+                            if (isSimulating) doRestore();
+                        }
                         refreshSavedCards();
                     })
                     .setNegativeButton("Cancel", null)
@@ -128,28 +145,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        this.savedCardsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        this.savedCardsRecyclerView.setAdapter(adapter);
+        savedCardsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        savedCardsRecyclerView.setAdapter(adapter);
 
-        this.btnToggle.setOnClickListener(v -> {
-            if (!isSimulating) {
-                String serialNumber = prefs.getValue("SERIAL_NUMBER", null);
-                if (serialNumber == null) {
-                    Toast.makeText(this, "No card to simulate =(", Toast.LENGTH_SHORT).show();
+        masterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return;
+            if (isChecked) {
+                if (selectedCardId == -1) {
+                    masterSwitch.setChecked(false);
+                    Toast.makeText(this, "Select a card first", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                doSimulate(serialNumber, -1);
+                String uid = prefs.getValue("SERIAL_NUMBER", null);
+                if (uid == null) {
+                    masterSwitch.setChecked(false);
+                    return;
+                }
+                doSimulate(uid, selectedCardId);
             } else {
                 doRestore();
             }
         });
 
-        this.btnScan.setOnClickListener(v -> {
+        btnScan.setOnClickListener(v -> {
             nfcScanner.startScan(this);
             toggleScanning(true);
         });
 
-        this.btnSaveCard.setOnClickListener(v -> {
+        btnSaveCard.setOnClickListener(v -> {
             String uid = prefs.getValue("SERIAL_NUMBER", null);
             if (uid == null || uid.equals(getString(R.string.DEFAULT_SERIAL_NUMBER))) {
                 Toast.makeText(this, "Scan a card first", Toast.LENGTH_SHORT).show();
@@ -158,22 +181,32 @@ public class MainActivity extends AppCompatActivity {
             showSaveDialog(uid);
         });
 
-        if (this.cardEmulator.isSimulating()) {
+        if (cardEmulator.isSimulating()) {
             isSimulating = true;
             updateSimulatingUI(true);
         }
 
         refreshSavedCards();
+        updateMasterSwitchState();
+    }
+
+    private void updateMasterSwitchState() {
+        boolean hasSelection = selectedCardId != -1;
+        masterSwitch.setEnabled(hasSelection);
+        masterToggleSubtext.setText(hasSelection
+                ? getString(R.string.TOGGLE_TO_EMULATE)
+                : getString(R.string.SELECT_CARD_FIRST));
     }
 
     private void doSimulate(String serialNumber, int cardId) {
         if (!cardEmulator.simulate(serialNumber)) {
             Toast.makeText(this, "Failed to simulate card =(", Toast.LENGTH_SHORT).show();
+            masterSwitch.setChecked(false);
             return;
         }
         isSimulating = true;
         activeCardId = cardId;
-        adapter.setActiveCardId(cardId);
+        adapter.setSelectedCardId(cardId);
         updateSimulatingUI(true);
     }
 
@@ -184,23 +217,31 @@ public class MainActivity extends AppCompatActivity {
         }
         isSimulating = false;
         activeCardId = -1;
-        adapter.setActiveCardId(-1);
         updateSimulatingUI(false);
     }
 
     private void updateSimulatingUI(boolean simulating) {
         statusText.setText(simulating ? R.string.SIMULATING : R.string.IDLE);
-        btnToggle.setText(simulating ? R.string.RESTORE : R.string.SIMULATE);
-        btnToggle.setRippleColor(ColorStateList.valueOf(Color.TRANSPARENT));
+        masterToggleSubtext.setText(simulating
+                ? getString(R.string.EMULATING_NOW)
+                : getString(R.string.TOGGLE_TO_EMULATE));
+
+        masterSwitch.setOnCheckedChangeListener(null);
+        masterSwitch.setChecked(simulating);
+        masterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return;
+            if (isChecked) {
+                String uid = prefs.getValue("SERIAL_NUMBER", null);
+                if (uid != null) doSimulate(uid, selectedCardId);
+            } else {
+                doRestore();
+            }
+        });
 
         if (simulating)
             statusIcon.startAnimation(pulseAnimation);
         else
             statusIcon.clearAnimation();
-
-        int targetBg = simulating ? Color.parseColor("#262626") : Color.WHITE;
-        int targetText = simulating ? Color.WHITE : Color.BLACK;
-        animateColorChange(targetBg, targetText);
     }
 
     private void toggleScanning(boolean state) {
@@ -255,20 +296,5 @@ public class MainActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
-    }
-
-    private void animateColorChange(int bgColor, int textColor) {
-        ValueAnimator bgAnim = ValueAnimator.ofArgb(
-            Objects.requireNonNull(btnToggle.getBackgroundTintList()).getDefaultColor(), bgColor);
-        bgAnim.addUpdateListener(a ->
-            btnToggle.setBackgroundTintList(ColorStateList.valueOf((int) a.getAnimatedValue())));
-
-        ValueAnimator txtAnim = ValueAnimator.ofArgb(btnToggle.getCurrentTextColor(), textColor);
-        txtAnim.addUpdateListener(a -> btnToggle.setTextColor((int) a.getAnimatedValue()));
-
-        AnimatorSet set = new AnimatorSet();
-        set.playTogether(bgAnim, txtAnim);
-        set.setDuration(300);
-        set.start();
     }
 }
