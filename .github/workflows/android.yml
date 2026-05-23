@@ -1,4 +1,5 @@
 - name: Sign Release APK
+<<<<<<< HEAD
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -48,3 +49,54 @@
           else
             echo "Error: Signed APK not found!" && exit 1
           fi
+=======
+  env:
+    KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: |
+    echo "=== APK output directory contents ==="
+    find app/build/outputs/apk/ -type f
+    
+    echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+    echo "=== Keystore file size ==="
+    ls -la release.keystore
+    
+    UNSIGNED_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | grep -v Signed | head -n 1)
+    echo "=== Selected APK for signing: $UNSIGNED_APK ==="
+    
+    if [ -f "$UNSIGNED_APK" ]; then
+      APKSIGNER=$(find $ANDROID_HOME/build-tools -name "apksigner" | sort -V | tail -1)
+      echo "=== Using apksigner: $APKSIGNER ==="
+      $APKSIGNER sign \
+        --ks release.keystore \
+        --ks-key-alias "$KEY_ALIAS" \
+        --ks-pass pass:"$KEYSTORE_PASSWORD" \
+        --key-pass pass:"$KEY_PASSWORD" \
+        --out app/build/outputs/apk/release/TensorCardEmulator-Signed.apk \
+        "$UNSIGNED_APK"
+      echo "=== Signed APK contents ==="
+      find app/build/outputs/apk/release/ -type f
+      echo "APK signed successfully."
+    else
+      echo "Error: Unsigned APK could not be found!" && exit 1
+    fi
+
+- name: Stage module components
+  run: |
+    mkdir -p MagiskModule/common
+    SIGNED_APK="app/build/outputs/apk/release/TensorCardEmulator-Signed.apk"
+    echo "=== Checking for signed APK ==="
+    ls -la app/build/outputs/apk/release/
+    if [ -f "$SIGNED_APK" ]; then
+      cp "$SIGNED_APK" MagiskModule/common/TensorCardEmulator.apk
+      echo "=== Verifying staged APK ==="
+      ls -la MagiskModule/common/
+      APKSIGNER=$(find $ANDROID_HOME/build-tools -name "apksigner" | sort -V | tail -1)
+      $APKSIGNER verify --verbose MagiskModule/common/TensorCardEmulator.apk
+      echo "Staged signed APK successfully."
+    else
+      echo "Error: Signed APK not found!" && exit 1
+    fi
+>>>>>>> 687a097b1a4ebdd348cd94e6aeffb24a270347c5
