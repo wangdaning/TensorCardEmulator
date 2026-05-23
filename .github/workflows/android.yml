@@ -4,8 +4,8 @@ env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "=== APK output directory contents ==="
+          run: |
+           echo "=== APK output directory contents ==="
           find app/build/outputs/apk/ -type f
           
           echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
@@ -16,20 +16,20 @@ env:
           echo "=== Selected APK for signing: $UNSIGNED_APK ==="
           
           if [ -f "$UNSIGNED_APK" ]; then
-            APKSIGNER=$(find $ANDROID_HOME/build-tools -name "apksigner" | sort -V | tail -1)
-            echo "=== Using apksigner: $APKSIGNER ==="
-            $APKSIGNER sign \
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name "apksigner" | sort -V | tail -1)
+          echo "=== Using apksigner: $APKSIGNER ==="
+           $APKSIGNER sign \
               --ks release.keystore \
               --ks-key-alias "$KEY_ALIAS" \
               --ks-pass pass:"$KEYSTORE_PASSWORD" \
               --key-pass pass:"$KEY_PASSWORD" \
               --out app/build/outputs/apk/release/TensorCardEmulator-Signed.apk \
               "$UNSIGNED_APK"
-            echo "=== Signed APK contents ==="
-            find app/build/outputs/apk/release/ -type f
-            echo "APK signed successfully."
+          echo "=== Signed APK contents ==="
+          find app/build/outputs/apk/release/ -type f
+          echo "APK signed successfully."
           else
-            echo "Error: Unsigned APK could not be found!" && exit 1
+          echo "Error: Unsigned APK could not be found!" && exit 1
           fi
         -name: Stage module components
         run: |
