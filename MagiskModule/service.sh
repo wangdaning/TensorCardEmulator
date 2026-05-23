@@ -82,8 +82,6 @@ fi
 
 # Grant NFC privileged permissions
 
-PKGXML="/data/system/packages.xml"
-
 if [ -f "$PKGXML" ] && grep -q "\"${PKG}\"" "$PKGXML"; then
     # Check if perms block already contains our NFC permissions
     if ! grep -A 20 "\"${PKG}\"" "$PKGXML" | grep -q "NFC_PREFERRED_PAYMENT_SERVICE"; then
@@ -122,14 +120,5 @@ am broadcast -a android.intent.action.PACKAGE_CHANGED \
 # Recompile/verify the package entry 
 
 cmd package compile -m speed -f "$PKG" 2>/dev/null || true
-
-# Set as preferred HCE service for NFC
-
-NFC_SERVICE=".CardEmulatorService"
-echo "[$(date)] Setting preferred NFC payment service..."
-cmd nfc set-default-payment-service "ru.extreames.tensorcardemulator/.CardEmulatorService" 2>/dev/null \
-    || settings put secure nfc_payment_default_component \
-       "ru.extreames.tensorcardemulator/.CardEmulatorService" 2>/dev/null \
-    || true
 
 echo "[$(date)] service.sh complete. Reboot required for packages.xml flag change to fully take effect."

@@ -3,8 +3,17 @@
     <string name="DEFAULT_SERIAL_NUMBER">00:00:00:00:00:00:00</string>
     <string name="SIMULATE">Simulate</string>
     <string name="RESTORE">Restore</string>
+    <string name="SCAN">Scan card</string>
     <string name="CARD_SERIAL">CARD SERIAL</string>
     <string name="IDLE">Idle</string>
     <string name="SIMULATING">Simulating</string>
     <string name="SCANNING">Scanning</string>
+    <string name="ACTIVE_CARD">Active card</string>
+    <string name="SAVED_CARDS">SAVED CARDS</string>
+    <string name="SAVE_CURRENT">Save current</string>
+    <string name="NO_CARDS">No saved cards yet</string>
+    <string name="ACTIVE">Active</string>
+    <string name="DELETE">Delete</string>
+    <string name="RENAME">Rename</string>
+    <string name="CARD_NAME_HINT">Card name</string>
 </resources>
