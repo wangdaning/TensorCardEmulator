@@ -24,7 +24,7 @@ public class Shell {
             Process process = Runtime.getRuntime().exec(new String[] {
                     "su",
                     "-c",
-                    "ps -A -o NAME | grep -i nfc"
+                    "ps -A -o NAME | grep -i 'hardware.nfc'"
             });
 
             String output = new String(process.getInputStream().readAllBytes());
@@ -40,16 +40,29 @@ public class Shell {
 
     public static boolean killProcess(String name) {
         try {
-            Runtime.getRuntime().exec(new String[] {
+            Process process = Runtime.getRuntime().exec(new String[] {
                     "su",
                     "-c",
-                    "killall " + name
+                    "killall " + name + " && sleep 1"
             });
+            return process.waitFor() == 0;
         }
         catch (Exception ignored) {
             return false;
         }
-        return true;
+    }
+
+    public static boolean fileExists(String filePath) {
+        try {
+            Process process = Runtime.getRuntime().exec(new String[] {
+                    "su",
+                    "-c",
+                    "test -f '" + filePath + "'"
+            });
+            return process.waitFor() == 0;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     public static String readFile(String filePath) throws Exception {
