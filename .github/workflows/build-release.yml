@@ -49,19 +49,18 @@ jobs:
           cd ..
           echo "Module compilation bundle prepared as ${{ github.ref_name }}.zip"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.ref_name }}
           path: ${{ github.ref_name }}.zip
 
       - name: Create GitHub Release Artifact
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ github.ref_name }}.zip
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
