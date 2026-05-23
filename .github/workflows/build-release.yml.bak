@@ -45,7 +45,7 @@ jobs:
       - name: Package Flashable Module ZIP
         run: |
           cd MagiskModule
-          zip -r "../TensorCardEmulator.zip" ./*
+          zip -r "../${{ github.ref_name }}.zip" ./*
           cd ..
           echo "Module compilation bundle prepared as ${{ github.ref_name }}.zip"
 
