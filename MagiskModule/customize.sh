@@ -5,13 +5,10 @@ SKIPMOUNT=false
 rm -rf "$MODPATH/system/priv-app"
 rm -rf "$MODPATH/system/vendor"
 
-if [ -f "$MODPATH/common/TensorCardEmulator.apk" ]; then
-    cp "$MODPATH/common/TensorCardEmulator.apk" "$MODPATH/staging/TensorCardEmulator.apk"
-else
-    ui_print "! Error: TensorCardEmulator.apk not found in common/ folder."
+if [ ! -f "$MODPATH/common/TensorCardEmulator.apk" ]; then
+    ui_print "! Error: TensorCardEmulator.apk not found in common/"
     abort
 fi
-
 
 ui_print "- APK staged"
 
