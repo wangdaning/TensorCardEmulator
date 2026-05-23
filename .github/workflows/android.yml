@@ -1,5 +1,5 @@
 - name: Sign Release APK
-        env:
+ env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -32,7 +32,7 @@
             echo "Error: Unsigned APK could not be found!" && exit 1
           fi
 
-      - name: Stage module components
+- name: Stage module components
         run: |
           mkdir -p MagiskModule/common
           SIGNED_APK="app/build/outputs/apk/release/TensorCardEmulator-Signed.apk"
