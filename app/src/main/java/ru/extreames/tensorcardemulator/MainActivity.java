@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,6 +31,8 @@ import ru.extreames.tensorcardemulator.nfc.CardEmulator;
 import ru.extreames.tensorcardemulator.nfc.NFCScanner;
 import ru.extreames.tensorcardemulator.prefs.PrefsManager;
 import ru.extreames.tensorcardemulator.root.Shell;
+
+
 
 public class MainActivity extends AppCompatActivity {
     private boolean isSimulating = false;
@@ -60,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onCreate(savedInstanceState);
-        this.getWindow().setStatusBarColor(Color.parseColor("#FF0F0F0F"));
+		WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+		getWindow().setStatusBarColor(Color.TRANSPARENT);
         this.setContentView(R.layout.activity_nfc_emulator);
 
         this.btnToggle = findViewById(R.id.btnToggle);
