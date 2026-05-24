@@ -1,6 +1,7 @@
 package ru.extreames.tensorcardemulator;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -52,15 +53,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (!Shell.hasRoot()) {
+       super.onCreate(savedInstanceState);
+	   
+	   if (!Shell.hasRoot()) {
             Toast.makeText(getApplicationContext(), "No root access =(", Toast.LENGTH_SHORT).show();
             this.finish();
             return;
         }
 
-        super.onCreate(savedInstanceState);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			getWindow().setDecorFitsSystemWindows(false);
+		} else {
+			getWindow().setStatusBarColor(Color.TRANSPARENT);
+}
         setContentView(R.layout.activity_nfc_emulator);
 
         masterSwitch = findViewById(R.id.masterSwitch);
