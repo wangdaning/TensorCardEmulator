@@ -8,13 +8,15 @@ import java.util.Base64;
 
 public class Shell {
     public static boolean hasRoot() {
-        try {
-            Runtime.getRuntime().exec(new String[] {"su"});
-        } catch (Exception ignored) {
-            return false;
-        }
-        return true;
+    try {
+        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "id"});
+        String output = new String(process.getInputStream().readAllBytes());
+        process.waitFor();
+        return output.contains("uid=0");
+    } catch (Exception ignored) {
+        return false;
     }
+}
 
     public static String[] getNFCProcesses() {
         try {
