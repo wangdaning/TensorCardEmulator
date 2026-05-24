@@ -1,14 +1,10 @@
 package ru.extreames.tensorcardemulator;
 
-import android.animation.AnimatorSet;
-import android.animation.ValueAnimator;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
