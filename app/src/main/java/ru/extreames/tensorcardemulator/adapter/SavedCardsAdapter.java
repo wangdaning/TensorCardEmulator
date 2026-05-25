@@ -5,102 +5,125 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.materialswitch.MaterialSwitch;
-
-import java.util.ArrayList;
-import java.util.List;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.Objects;
 
 import ru.extreames.tensorcardemulator.R;
 import ru.extreames.tensorcardemulator.model.SavedCard;
 
-public class SavedCardsAdapter extends RecyclerView.Adapter<SavedCardsAdapter.ViewHolder> {
+public class SavedCardsAdapter extends ListAdapter<SavedCard, SavedCardsAdapter.CardViewHolder> {
 
     public interface Listener {
-        void onCardSelected(SavedCard card);   // toggle switched on
-        void onCardDeselected(SavedCard card); // toggle switched off
+        void onCardSelected(SavedCard card);
+        void onCardDeselected(SavedCard card);
         void onDelete(SavedCard card);
         void onRename(SavedCard card);
     }
 
-    private final List<SavedCard> cards = new ArrayList<>();
-    private int selectedCardId = -1;
     private final Listener listener;
+    private int selectedCardId = -1;
+
+    private static final DiffUtil.ItemCallback<SavedCard> DIFF_CALLBACK = new DiffUtil.ItemCallback<SavedCard>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull SavedCard oldItem, @NonNull SavedCard newItem) {
+            return oldItem.id == newItem.id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull SavedCard oldItem, @NonNull SavedCard newItem) {
+            return Objects.equals(oldItem.name, newItem.name) && 
+                   Objects.equals(oldItem.uid, newItem.uid);
+        }
+    };
 
     public SavedCardsAdapter(Listener listener) {
+        super(DIFF_CALLBACK);
         this.listener = listener;
     }
 
-    public void setCards(List<SavedCard> newCards) {
-        cards.clear();
-        cards.addAll(newCards);
-        notifyDataSetChanged();
-    }
-
     public void setSelectedCardId(int id) {
+        int previousSelectedId = this.selectedCardId;
         this.selectedCardId = id;
-        notifyDataSetChanged();
-    }
-
-    public int getSelectedCardId() {
-        return selectedCardId;
+        
+        for (int i = 0; i < getItemCount(); i++) {
+            SavedCard item = getItem(i);
+            if (item.id == previousSelectedId || item.id == selectedCardId) {
+                notifyItemChanged(i);
+            }
+        }
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public CardViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_saved_card, parent, false);
-        return new ViewHolder(view);
+        return new CardViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        SavedCard card = cards.get(position);
-        boolean isSelected = card.id == selectedCardId;
+    public void onBindViewHolder(@NonNull CardViewHolder holder, int position) {
+        holder.bind(getItem(position), listener, selectedCardId);
+    }
 
-        holder.cardName.setText(card.name);
-        holder.cardUid.setText(card.uid);
-        holder.activeBadge.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-        holder.cardSwitch.setOnCheckedChangeListener(null);
-        holder.cardSwitch.setChecked(isSelected);
+    static class CardViewHolder extends RecyclerView.ViewHolder {
+        private final TextView cardNameText;
+        private final TextView cardUidText;
+        private final ImageView btnDelete;
+        private final MaterialSwitch cardSwitch;
+        private final View activeBadge;
 
-        holder.cardSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                listener.onCardSelected(card);
-            } else {
-                listener.onCardDeselected(card);
+        public CardViewHolder(@NonNull View itemView) {
+            super(itemView);
+            cardNameText = itemView.findViewById(R.id.cardName);
+            cardUidText = itemView.findViewById(R.id.cardUid);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
+            cardSwitch = itemView.findViewById(R.id.cardSwitch);
+            activeBadge = itemView.findViewById(R.id.activeBadge);
+        }
+
+        public void bind(final SavedCard card, final Listener listener, int selectedCardId) {
+            cardNameText.setText(card.name);
+            cardUidText.setText(card.uid);
+
+            boolean isSelected = (card.id == selectedCardId);
+            
+            if (activeBadge != null) {
+                activeBadge.setVisibility(isSelected ? View.VISIBLE : View.GONE);
             }
-        });
+            
+            if (cardSwitch != null) {
+                cardSwitch.setChecked(isSelected);
+                cardSwitch.setOnClickListener(v -> {
+                    if (listener != null) {
+                        if (isSelected) {
+                            listener.onCardDeselected(card);
+                        } else {
+                            listener.onCardSelected(card);
+                        }
+                    }
+                });
+            }
 
-        holder.btnDelete.setOnClickListener(v -> listener.onDelete(card));
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    if (isSelected) {
+                        listener.onCardDeselected(card);
+                    } else {
+                        listener.onCardSelected(card);
+                    }
+                }
+            });
 
-        holder.cardName.setOnLongClickListener(v -> {
-            listener.onRename(card);
-            return true;
-        });
-    }
-
-    @Override
-    public int getItemCount() {
-        return cards.size();
-    }
-
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView cardName, cardUid, activeBadge;
-        MaterialSwitch cardSwitch;
-        ImageView btnDelete;
-
-        ViewHolder(View view) {
-            super(view);
-            cardName = view.findViewById(R.id.cardName);
-            cardUid = view.findViewById(R.id.cardUid);
-            activeBadge = view.findViewById(R.id.activeBadge);
-            cardSwitch = view.findViewById(R.id.cardSwitch);
-            btnDelete = view.findViewById(R.id.btnDelete);
+            if (btnDelete != null) {
+                btnDelete.setOnClickListener(v -> {
+                    if (listener != null) listener.onDelete(card);
+                });
+            }
         }
     }
 }

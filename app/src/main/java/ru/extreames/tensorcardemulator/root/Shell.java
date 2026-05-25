@@ -1,95 +1,112 @@
 package ru.extreames.tensorcardemulator.root;
 
+import java.util.Base64;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Base64;
+import java.io.OutputStream;
 
 public class Shell {
+
     public static boolean hasRoot() {
-    try {
-        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "id"});
-        String output = new String(process.getInputStream().readAllBytes());
-        process.waitFor();
-        return output.contains("uid=0");
-    } catch (Exception ignored) {
-        return false;
-    }
-}
-
-    public static String[] getNFCProcesses() {
         try {
-            Process process = Runtime.getRuntime().exec(new String[] {
-                    "su", "-c", "ps -A -o NAME | grep -i 'hardware.nfc'"
-            });
-            String output = new String(process.getInputStream().readAllBytes());
-            return Arrays.stream(output.split("\n"))
-                    .filter(line -> !line.contains("grep") && !line.trim().isEmpty())
-                    .map(String::trim)
-                    .toArray(String[]::new);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    public static boolean killProcess(String name) {
-        try {
-            Process process = Runtime.getRuntime().exec(new String[] {
-                    "su", "-c", "killall " + name + " && sleep 1"
-            });
-            return process.waitFor() == 0;
-        } catch (Exception ignored) {
+            Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "id"});
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String output = reader.readLine();
+                return process.waitFor() == 0 && output != null && output.contains("uid=0");
+            } finally {
+                process.destroy();
+            }
+        } catch (Exception e) {
             return false;
         }
     }
 
     public static boolean fileExists(String filePath) {
+        if (filePath == null) return false;
         try {
-            Process process = Runtime.getRuntime().exec(new String[] {
-                    "su", "-c", "test -f '" + filePath + "'"
-            });
-            return process.waitFor() == 0;
-        } catch (Exception ignored) {
+            String[] cmd = {"su", "-c", "[ -f " + escapeShellArg(filePath) + " ]"};
+            Process process = Runtime.getRuntime().exec(cmd);
+            try {
+                return process.waitFor() == 0;
+            } finally {
+                process.destroy();
+            }
+        } catch (Exception e) {
             return false;
         }
     }
 
+    public static void copyFile(String source, String destination) throws Exception {
+        if (source == null || destination == null) throw new IllegalArgumentException("Paths cannot be null");
+        String command = "cp " + escapeShellArg(source) + " " + escapeShellArg(destination);
+        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
+        try {
+            if (process.waitFor() != 0) {
+                throw new IOException("Failed to copy file via root command execution");
+            }
+        } finally {
+            process.destroy();
+        }
+    }
+
     public static String readFile(String filePath) throws Exception {
-        Process process = Runtime.getRuntime().exec(new String[] {
-                "su", "-c", "cat '" + filePath + "'"
-        });
+        if (filePath == null) throw new IllegalArgumentException("File path cannot be null");
+        String command = "cat " + escapeShellArg(filePath);
+        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
+        
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             StringBuilder output = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                if (output.length() > 0)
-                    output.append("\n");
+                if (output.length() > 0) output.append("\n");
                 output.append(line);
             }
-            if (process.waitFor() != 0)
-                throw new IOException("Failed to read file via root");
+            if (process.waitFor() != 0) {
+                throw new IOException("Failed to read file via root shell execution");
+            }
             return output.toString();
+        } finally {
+            process.destroy();
         }
     }
 
     public static void writeFile(String filePath, String content) throws Exception {
-        String base64Content = Base64.getEncoder().encodeToString(content.getBytes());
-        String command = String.format(
-                "echo '%s' | base64 -d > '%s' && chmod 644 '%s'",
-                base64Content, filePath, filePath);
-        Process process = Runtime.getRuntime().exec(new String[] {
-                "su", "-c", command
-        });
-        if (process.waitFor() != 0)
-            throw new IOException("Failed to write file via root");
+        if (filePath == null || content == null) throw new IllegalArgumentException("Arguments cannot be null");
+        
+        String command = "base64 -d > " + escapeShellArg(filePath);
+        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
+        
+        try {
+            try (OutputStream os = process.getOutputStream()) {
+                byte[] base64Data = Base64.getEncoder().encode(content.getBytes("UTF-8"));
+                os.write(base64Data);
+                os.flush();
+            }
+            
+            if (process.waitFor() != 0) {
+                throw new IOException("Failed to write content to target path");
+            }
+        } finally {
+            process.destroy();
+        }
     }
 
-    public static void copyFile(String src, String dst) throws Exception {
-        Process process = Runtime.getRuntime().exec(new String[] {
-                "su", "-c", "cp -f '" + src + "' '" + dst + "'"
-        });
-        if (process.waitFor() != 0)
-            throw new IOException("Failed to copy file");
+    public static boolean restartNFC() {
+        try {
+            Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc disable"}).waitFor();
+            Thread.sleep(500);
+            Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc enable"}).waitFor();
+            Thread.sleep(1000);
+            
+            Runtime.getRuntime().exec(new String[]{"su", "-c", "killall android.hardware.nfc-service.st"}).waitFor();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static String escapeShellArg(String arg) {
+        return "'" + arg.replace("'", "'\\''") + "'";
     }
 }
