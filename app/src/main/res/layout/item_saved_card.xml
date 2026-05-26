@@ -2,13 +2,15 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="#1C1C1E"
+    style="?attr/materialCardViewFilledStyle"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:strokeColor="#2A2A2A"
+    app:strokeColor="?attr/colorSurfaceVariant"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -34,7 +36,7 @@
                     android:id="@+id/cardName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#E5E5E5"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium" />
 
@@ -49,7 +51,7 @@
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:text="@string/ACTIVE"
-                    android:textColor="#4ADE80"
+                    android:textColor="?attr/colorOnTertiary"
                     android:textSize="11sp"
                     android:fontFamily="sans-serif-medium"
                     android:visibility="gone" />
@@ -62,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
                 android:fontFamily="monospace"
-                android:textColor="#525252"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
         </LinearLayout>
@@ -74,9 +76,8 @@
             android:padding="6dp"
             android:layout_marginEnd="8dp"
             android:src="@android:drawable/ic_menu_delete"
-            app:tint="#3A3A3A"
-            tools:ignore="ContentDescription"
-            xmlns:tools="http://schemas.android.com/tools" />
+            app:tint="?attr/colorOnSurfaceVariant"
+            tools:ignore="ContentDescription" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/cardSwitch"

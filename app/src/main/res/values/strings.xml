@@ -1,23 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TensorCardEmulator</string>
-    <string name="DEFAULT_SERIAL_NUMBER">00:00:00:00:00:00:00</string>
-    <string name="SIMULATE">Simulate</string>
-    <string name="RESTORE">Restore</string>
-    <string name="SCAN">Scan card</string>
-    <string name="CARD_SERIAL">CARD SERIAL</string>
-    <string name="IDLE">Idle</string>
-    <string name="SIMULATING">Simulating</string>
-    <string name="SCANNING">Scanning</string>
-    <string name="ACTIVE_CARD">Active card</string>
-    <string name="SAVED_CARDS">SAVED CARDS</string>
-    <string name="SAVE_CURRENT">Save current</string>
-    <string name="NO_CARDS">No saved cards yet</string>
+    <string name="default_serial_number">00:00:00:00:00:00:00</string>
+
+    <string name="card_serial">CARD SERIAL</string>
+    <string name="saved_cards">SAVED CARDS</string>
+    <string name="no_cards">No saved cards yet</string>
+    <string name="card_name_hint">Card name</string>
+
+    <string name="btn_scan">Scan Card</string>
+    <string name="btn_save_current">Save Current</string>
+    <string name="simulate">Simulate</string>
+    <string name="restore">Restore</string>
+
+    <string name="idle">Idle</string>
+    <string name="simulating">Simulating</string>
+    <string name="scanning">Scanning</string>
+    <string name="emulation">Emulation</string>
+
+    <string name="active_card">Active card</string>
     <string name="ACTIVE">Active</string>
-    <string name="DELETE">Delete</string>
-    <string name="RENAME">Rename</string>
-    <string name="CARD_NAME_HINT">Card name</string>
-    <string name="EMULATION">Emulation</string>
-    <string name="SELECT_CARD_FIRST">Select a card below first</string>
-    <string name="TOGGLE_TO_EMULATE">Toggle to start emulating</string>
-    <string name="EMULATING_NOW">Emulating card…</string>
+    <string name="active_lowercase">Active</string>
+
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+
+    <string name="select_card_first">Select a card below first</string>
+    <string name="toggle_to_emulate">Toggle to start emulating</string>
+    <string name="emulating_now">Emulating card…</string>
 </resources>

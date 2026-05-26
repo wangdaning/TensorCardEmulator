@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
+    <color name="md_theme_primary">#FF6200EE</color>
+    <color name="md_theme_onPrimary">#FFFFFFFF</color>
+    <color name="md_theme_primaryContainer">#FFBB86FC</color>
+    <color name="md_theme_onPrimaryContainer">#FF3700B3</color>
+
+    <color name="md_theme_secondary">#FF018786</color>
+    <color name="md_theme_onSecondary">#FFFFFFFF</color>
+    <color name="md_theme_secondaryContainer">#FF03DAC5</color>
     
-    <!-- Secondary Colors -->
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="md_theme_error">#FFB3261E</color>
+    <color name="md_theme_onError">#FFFFFFFF</color>
+    <color name="md_theme_errorContainer">#FFF9DEDC</color>
+    <color name="md_theme_onErrorContainer">#FF410002</color>
+
+    <color name="md_theme_background">#FF1C1B1F</color>
+    <color name="md_theme_onBackground">#FFE3E2E6</color>
+    <color name="md_theme_surface">#FF1C1B1F</color>
+    <color name="md_theme_onSurface">#FFE3E2E6</color>
     
-    <!-- Base Colors -->
+    <color name="md_theme_surfaceVariant">#FF49454F</color>
+    <color name="md_theme_onSurfaceVariant">#FFCAC4D0</color>
+    <color name="md_theme_outline">#FF938F99</color>
+    <color name="md_theme_outlineVariant">#FF49454F</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- Error Color (REQUIRED for Material Design) -->
-    <color name="error_red">#FFB3261E</color>
-    <color name="error_light">#FFF9DEDC</color>
-    
-    <!-- Surface Colors -->
-    <color name="surface_light">#FFFBFE</color>
+    <color name="surface_light">#FFFBFEFF</color>
     <color name="surface_dark">#FF1C1B1F</color>
 </resources>

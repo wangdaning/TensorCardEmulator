@@ -1,27 +1,36 @@
 package ru.extreames.tensorcardemulator.model;
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.Query;
-import androidx.room.Update;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
+import androidx.room.Ignore;
 
-import java.util.List;
+@Entity(tableName = "saved_cards", indices = {@Index(value = {"uid"}, unique = true)})
+public class SavedCard {
+    
+    @PrimaryKey(autoGenerate = true)
+    public int id;
 
-@Dao
-public interface SavedCardDao {
-    @Query("SELECT * FROM saved_cards ORDER BY createdAt DESC")
-    List<SavedCard> getAll();
+    @NonNull
+    public String name;
 
-    @Insert
-    long insert(SavedCard card);
+    @NonNull
+    public String uid;
 
-    @Update
-    void update(SavedCard card);
+    public long createdAt;
 
-    @Delete
-    void delete(SavedCard card);
+    public SavedCard(int id, @NonNull String name, @NonNull String uid, long createdAt) {
+        this.id = id;
+        this.name = name;
+        this.uid = uid;
+        this.createdAt = createdAt;
+    }
 
-    @Query("SELECT * FROM saved_cards WHERE id = :id LIMIT 1")
-    SavedCard getById(int id);
+    @Ignore
+    public SavedCard(@NonNull String name, @NonNull String uid) {
+        this.name = name;
+        this.uid = uid;
+        this.createdAt = System.currentTimeMillis();
+    }
 }

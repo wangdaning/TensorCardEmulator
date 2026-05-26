@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NFCScanner implements NfcAdapter.ReaderCallback {
 
@@ -13,6 +16,8 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
 
     private final Listener listener;
     private final NfcAdapter nfcAdapter;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
     public NFCScanner(Activity activity, Listener listener) {
         this.listener = listener;
@@ -21,6 +26,8 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
 
     public void startScan(Activity activity) {
         if (nfcAdapter != null) {
+            isProcessing.set(false);
+            
             Bundle options = new Bundle();
             options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250);
             
@@ -32,18 +39,26 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
 
     public void stopScan(Activity activity) {
         if (nfcAdapter != null) {
-            nfcAdapter.disableReaderMode(activity);
+            try {
+                nfcAdapter.disableReaderMode(activity);
+            } catch (IllegalStateException e) {
+                // Handle edge context closures silently and safely
+            }
         }
     }
 
     @Override
     public void onTagDiscovered(Tag tag) {
+        if (!isProcessing.compareAndSet(false, true)) {
+            return;
+        }
+
         byte[] id = tag.getId();
         if (id == null || id.length == 0) {
+            isProcessing.set(false);
             return; 
         }
 
-        // Parse raw byte stream into standard, readable colon-separated HEX format
         StringBuilder hexString = new StringBuilder();
         for (int i = 0; i < id.length; i++) {
             String hex = Integer.toHexString(0xFF & id[i]);
@@ -56,8 +71,12 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
             }
         }
 
-        if (listener != null) {
-            listener.onScan(hexString.toString());
-        }
+        final String formattedUid = hexString.toString();
+
+        mainHandler.post(() -> {
+            if (listener != null) {
+                listener.onScan(formattedUid);
+            }
+        });
     }
 }

@@ -1,11 +1,14 @@
 package ru.extreames.tensorcardemulator.model;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import androidx.annotation.NonNull;
+import androidx.room.Ignore;
 
-@Entity(tableName = "saved_cards")
+@Entity(tableName = "saved_cards", indices = {@Index(value = {"uid"}, unique = true)})
 public class SavedCard {
+    
     @PrimaryKey(autoGenerate = true)
     public int id;
 
@@ -21,5 +24,13 @@ public class SavedCard {
         this.name = name;
         this.uid = uid;
         this.createdAt = System.currentTimeMillis();
+    }
+
+    @Ignore
+    public SavedCard(int id, @NonNull String name, @NonNull String uid, long createdAt) {
+        this.id = id;
+        this.name = name;
+        this.uid = uid;
+        this.createdAt = createdAt;
     }
 }

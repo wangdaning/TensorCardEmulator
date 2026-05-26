@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:cardBackgroundColor="#1F1F1F"
+        style="?attr/materialCardViewFilledStyle"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
         app:cardCornerRadius="12dp"
         app:strokeWidth="0dp">
 
@@ -52,7 +53,7 @@
                     android:layout_height="wrap_content"
                     android:text="Standard system configuration"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <com.google.android.material.materialswitch.MaterialSwitch
@@ -79,7 +80,7 @@
             android:text="Current Card UID"
             android:textSize="14sp"
             android:textAllCaps="true"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
         <TextView
             android:id="@+id/serialTextView"
@@ -106,6 +107,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
+            style="?attr/materialButtonStyle"
             android:text="Scan Card" />
 
         <com.google.android.material.button.MaterialButton
@@ -114,6 +116,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
+            style="?attr/materialButtonFilledTonalStyle"
             android:text="Save Current" />
     </LinearLayout>
 
@@ -138,13 +141,13 @@
             android:layout_gravity="center"
             android:text="No cards saved yet"
             android:textSize="16sp"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/savedCardsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/item_card" />
+            tools:listitem="@layout/item_saved_card" />
     </FrameLayout>
 </LinearLayout>

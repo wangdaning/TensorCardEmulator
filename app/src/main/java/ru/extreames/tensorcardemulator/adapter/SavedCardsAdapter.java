@@ -52,7 +52,6 @@ public class SavedCardsAdapter extends ListAdapter<SavedCard, SavedCardsAdapter.
         int previousSelectedId = this.selectedCardId;
         this.selectedCardId = id;
         
-        // Fix: Use getCurrentList() to safely evaluate items without clashing with DiffUtil transitions
         List<SavedCard> currentList = getCurrentList();
         for (int i = 0; i < currentList.size(); i++) {
             SavedCard item = currentList.get(i);
@@ -91,29 +90,36 @@ public class SavedCardsAdapter extends ListAdapter<SavedCard, SavedCardsAdapter.
             activeBadge = itemView.findViewById(R.id.activeBadge);
         }
 
-        public void bind(final SavedCard card, final Listener listener, int selectedCardId) {
+        public void bind(final SavedCard card, final Listener listener, final int selectedCardId) {
             cardNameText.setText(card.name);
             cardUidText.setText(card.uid);
 
-            boolean isSelected = (card.id == selectedCardId);
+            final boolean isSelected = (card.id == selectedCardId);
             
             if (activeBadge != null) {
                 activeBadge.setVisibility(isSelected ? View.VISIBLE : View.GONE);
             }
             
             if (cardSwitch != null) {
+                // 1. Break down old listener mapping to prevent recycled execution bugs
+                cardSwitch.setOnCheckedChangeListener(null);
+                
+                // 2. Set the exact model state baseline programmatically
                 cardSwitch.setChecked(isSelected);
-                cardSwitch.setOnClickListener(v -> {
+                
+                // 3. Attach a clean structural change detector
+                cardSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     if (listener != null) {
-                        if (isSelected) {
-                            listener.onCardDeselected(card);
-                        } else {
+                        if (isChecked) {
                             listener.onCardSelected(card);
+                        } else {
+                            listener.onCardDeselected(card);
                         }
                     }
                 });
             }
 
+            // Entire row wrapper click implementation
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     if (isSelected) {
@@ -122,6 +128,15 @@ public class SavedCardsAdapter extends ListAdapter<SavedCard, SavedCardsAdapter.
                         listener.onCardSelected(card);
                     }
                 }
+            });
+
+            // Handle optional long clicks for item renaming
+            itemView.setOnLongClickListener(v -> {
+                if (listener != null) {
+                    listener.onRename(card);
+                    return true;
+                }
+                return false;
             });
 
             if (btnDelete != null) {
