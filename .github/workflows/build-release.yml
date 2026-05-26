@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -70,6 +71,7 @@ jobs:
           cd MagiskModule
           zip -r "../TensorCardEmulatorv1.0.1.zip" ./*
           cd ..
+          ls -lah *.zip
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v5
@@ -87,5 +89,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
