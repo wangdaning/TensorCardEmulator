@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+import java.util.List;
 import java.util.Objects;
 
 import ru.extreames.tensorcardemulator.R;
@@ -46,12 +47,16 @@ public class SavedCardsAdapter extends ListAdapter<SavedCard, SavedCardsAdapter.
     }
 
     public void setSelectedCardId(int id) {
+        if (this.selectedCardId == id) return;
+        
         int previousSelectedId = this.selectedCardId;
         this.selectedCardId = id;
         
-        for (int i = 0; i < getItemCount(); i++) {
-            SavedCard item = getItem(i);
-            if (item.id == previousSelectedId || item.id == selectedCardId) {
+        // Fix: Use getCurrentList() to safely evaluate items without clashing with DiffUtil transitions
+        List<SavedCard> currentList = getCurrentList();
+        for (int i = 0; i < currentList.size(); i++) {
+            SavedCard item = currentList.get(i);
+            if (item != null && (item.id == previousSelectedId || item.id == selectedCardId)) {
                 notifyItemChanged(i);
             }
         }

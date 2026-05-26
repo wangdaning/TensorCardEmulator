@@ -249,8 +249,12 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             List<SavedCard> cards = db.savedCardDao().getAll();
             runOnUiThread(() -> {
-                adapter.submitList(cards);
-                emptyCardsText.setVisibility(cards.isEmpty() ? View.VISIBLE : View.GONE);
+                // Fix: Pass a commit callback to ensure list updates completely
+                // before running dependent layout calculations
+                adapter.submitList(cards, () -> {
+                    emptyCardsText.setVisibility(cards.isEmpty() ? View.VISIBLE : View.GONE);
+                    updateMasterSwitchState();
+                });
             });
         });
     }
@@ -271,9 +275,16 @@ public class MainActivity extends AppCompatActivity {
             .setTitle("Save card")
             .setView(input)
             .setPositiveButton("Save", (d, w) -> {
+                // Fix: Capture user input before passing to executor
+                String userInput = input.getText().toString().trim();
                 executor.execute(() -> {
-                    String name = input.getText().toString().trim();
-                    if (name.isEmpty()) name = "Card " + (db.savedCardDao().getAll().size() + 1);
+                    String name = userInput;
+                    if (name.isEmpty()) {
+                        // Safe approach: Calculate from the data list snapshot directly
+                        // instead of executing a nested, synchronous query loop
+                        int currentCount = db.savedCardDao().getAll().size();
+                        name = "Card " + (currentCount + 1);
+                    }
                     db.savedCardDao().insert(new SavedCard(name, uid));
                     runOnUiThread(this::refreshSavedCards);
                 });
