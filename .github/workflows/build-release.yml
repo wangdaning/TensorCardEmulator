@@ -29,36 +29,26 @@ jobs:
       - name: Grant execute permission to Gradlew
         run: chmod +x gradlew
 
-      - name: Compile App APK
-        run: ./gradlew assembleRelease
-
-      - name: Sign Release APK
+      - name: Decode and setup keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > app/keystore.jks
+
+      - name: Compile App APK
+        env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
-          UNSIGNED_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | grep -v Signed | head -n 1)
-          if [ -f "$UNSIGNED_APK" ]; then
-            APKSIGNER=$(find $ANDROID_HOME/build-tools -name "apksigner" | sort -V | tail -1)
-            $APKSIGNER sign \
-              --ks release.keystore \
-              --ks-key-alias "$KEY_ALIAS" \
-              --ks-pass pass:"$KEYSTORE_PASSWORD" \
-              --key-pass pass:"$KEY_PASSWORD" \
-              --out app/build/outputs/apk/release/TensorCardEmulator-Signed.apk \
-              "$UNSIGNED_APK"
-            echo "APK signed successfully."
-          else
-            echo "Error: Unsigned APK could not be found!" && exit 1
-          fi
+        run: ./gradlew assembleRelease
+
+      - name: Clean up keystore
+        run: rm -f app/keystore.jks
 
       - name: Stage module components
         run: |
           mkdir -p MagiskModule/common
-          SIGNED_APK="app/build/outputs/apk/release/TensorCardEmulator-Signed.apk"
+          SIGNED_APK="app/build/outputs/apk/release/app-release.apk"
           if [ -f "$SIGNED_APK" ]; then
             cp "$SIGNED_APK" MagiskModule/common/TensorCardEmulator.apk
             echo "Staged signed APK successfully."
