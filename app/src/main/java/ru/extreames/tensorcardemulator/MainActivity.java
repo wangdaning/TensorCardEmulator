@@ -100,3 +100,14 @@ public class MainActivity extends AppCompatActivity {
                     activity.initializeApp();
                     activity.setLoading(false);
                 }
+            }); 
+        });     
+    }
+
+    private void initializeApp() {
+    }
+
+    private void setLoading(boolean isLoading) {
+    }
+
+}

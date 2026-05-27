@@ -116,7 +116,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            style="?attr/materialButtonFilledTonalStyle"
+            style="?attr/materialButtonTonalStyle"
             android:text="Save Current" />
     </LinearLayout>
 

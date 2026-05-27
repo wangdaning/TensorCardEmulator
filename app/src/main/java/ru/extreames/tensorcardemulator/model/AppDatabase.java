@@ -22,7 +22,8 @@ public abstract class AppDatabase extends RoomDatabase {
                         AppDatabase.class,
                         "tensor_card_emulator_db"
                     )
-                    .fallbackToDestructiveMigration() 
+                    .fallbackToDestructiveMigration()
+                    .allowMainThreadQueries()
                     .build();
                 }
             }

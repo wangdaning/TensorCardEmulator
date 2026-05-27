@@ -1,36 +1,28 @@
 package ru.extreames.tensorcardemulator.model;
 
-import androidx.room.Entity;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
-import androidx.annotation.NonNull;
-import androidx.room.Ignore;
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+import androidx.room.Update;
 
-@Entity(tableName = "saved_cards", indices = {@Index(value = {"uid"}, unique = true)})
-public class SavedCard {
-    
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+import java.util.List;
 
-    @NonNull
-    public String name;
+@Dao
+public interface SavedCardDao {
+    @Query("SELECT * FROM saved_cards ORDER BY createdAt DESC")
+    List<SavedCard> getAll();
 
-    @NonNull
-    public String uid;
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(SavedCard card);
 
-    public long createdAt;
+    @Update
+    void update(SavedCard card);
 
-    public SavedCard(int id, @NonNull String name, @NonNull String uid, long createdAt) {
-        this.id = id;
-        this.name = name;
-        this.uid = uid;
-        this.createdAt = createdAt;
-    }
+    @Delete
+    void delete(SavedCard card);
 
-    @Ignore
-    public SavedCard(@NonNull String name, @NonNull String uid) {
-        this.name = name;
-        this.uid = uid;
-        this.createdAt = System.currentTimeMillis();
-    }
+    @Query("SELECT COUNT(*) FROM saved_cards")
+    int count();
 }
