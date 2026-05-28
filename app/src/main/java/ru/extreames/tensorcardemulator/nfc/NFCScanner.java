@@ -6,6 +6,7 @@ import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NFCScanner implements NfcAdapter.ReaderCallback {
@@ -27,12 +28,17 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
     public void startScan(Activity activity) {
         if (nfcAdapter != null) {
             isProcessing.set(false);
-            
+
             Bundle options = new Bundle();
             options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250);
-            
+
             nfcAdapter.enableReaderMode(activity, this,
-                    NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+                    NfcAdapter.FLAG_READER_NFC_A |
+                    NfcAdapter.FLAG_READER_NFC_B |
+                    NfcAdapter.FLAG_READER_NFC_F |
+                    NfcAdapter.FLAG_READER_NFC_V |
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK |
+                    NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
                     options);
         }
     }
@@ -42,7 +48,7 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
             try {
                 nfcAdapter.disableReaderMode(activity);
             } catch (IllegalStateException e) {
-                // Handle edge context closures silently and safely
+                // Handle edge context closures silently
             }
         }
     }
@@ -56,7 +62,7 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
         byte[] id = tag.getId();
         if (id == null || id.length == 0) {
             isProcessing.set(false);
-            return; 
+            return;
         }
 
         StringBuilder hexString = new StringBuilder();
@@ -72,7 +78,6 @@ public class NFCScanner implements NfcAdapter.ReaderCallback {
         }
 
         final String formattedUid = hexString.toString();
-
         mainHandler.post(() -> {
             if (listener != null) {
                 listener.onScan(formattedUid);

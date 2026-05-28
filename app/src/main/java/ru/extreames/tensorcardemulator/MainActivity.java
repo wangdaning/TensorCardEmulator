@@ -8,11 +8,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.lang.ref.WeakReference;
@@ -25,13 +27,13 @@ import ru.extreames.tensorcardemulator.model.AppDatabase;
 import ru.extreames.tensorcardemulator.model.SavedCard;
 import ru.extreames.tensorcardemulator.nfc.CardEmulator;
 import ru.extreames.tensorcardemulator.nfc.NFCScanner;
-import ru.extreames.tensorcardemulator.root.Shell;
 import ru.extreames.tensorcardemulator.prefs.PrefsManager;
+import ru.extreames.tensorcardemulator.root.Shell;
 
 public class MainActivity extends AppCompatActivity {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    
+
     private MaterialSwitch masterSwitch;
     private TextView masterToggleSubtext;
     private TextView statusText;
@@ -41,16 +43,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView emptyCardsText;
     private RecyclerView savedCardsRecyclerView;
     private View btnScan;
-    
+
     private AlphaAnimation pulseAnimation;
     private AppDatabase db;
     private CardEmulator cardEmulator;
-    private PrefsManager prefs; 
+    private PrefsManager prefs;
     private NFCScanner nfcScanner;
-    private SavedCardsAdapter adapter; 
-    
+    private SavedCardsAdapter adapter;
+
     private boolean isSimulating = false;
-    private volatile boolean isPendingOperation = false; 
     private int selectedCardId = -1;
     private int activeCardId = -1;
 
@@ -71,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setDecorFitsSystemWindows(false);
         setContentView(R.layout.activity_nfc_emulator);
 
         masterSwitch = findViewById(R.id.masterSwitch);
@@ -100,14 +100,261 @@ public class MainActivity extends AppCompatActivity {
                     activity.initializeApp();
                     activity.setLoading(false);
                 }
-            }); 
-        });     
+            });
+        });
     }
 
     private void initializeApp() {
+        db = AppDatabase.getInstance(this);
+        cardEmulator = new CardEmulator();
+        prefs = new PrefsManager(this, "SAVED_CARD");
+
+        pulseAnimation = new AlphaAnimation(1.0f, 0.4f);
+        pulseAnimation.setDuration(1000);
+        pulseAnimation.setRepeatCount(Animation.INFINITE);
+        pulseAnimation.setRepeatMode(Animation.REVERSE);
+
+        serialTextView.setText(prefs.getValue("SERIAL_NUMBER",
+                getString(R.string.DEFAULT_SERIAL_NUMBER)));
+
+        nfcScanner = new NFCScanner(this, serialNumber -> runOnSafeUi(activity -> {
+            prefs.setValue("SERIAL_NUMBER", serialNumber);
+            serialTextView.setText(serialNumber);
+            nfcScanner.stopScan(activity);
+            toggleScanning(false);
+        }));
+
+        adapter = new SavedCardsAdapter(new SavedCardsAdapter.Listener() {
+            @Override
+            public void onCardSelected(SavedCard card) {
+                selectedCardId = card.id;
+                adapter.setSelectedCardId(selectedCardId);
+                prefs.setValue("SERIAL_NUMBER", card.uid);
+                serialTextView.setText(card.uid);
+                updateMasterSwitchState();
+                if (isSimulating) {
+                    doRestore();
+                    doSimulate(card.uid, card.id);
+                }
+            }
+
+            @Override
+            public void onCardDeselected(SavedCard card) {
+                if (card.id == selectedCardId) {
+                    selectedCardId = -1;
+                    adapter.setSelectedCardId(-1);
+                    updateMasterSwitchState();
+                    if (isSimulating) doRestore();
+                }
+            }
+
+            @Override
+            public void onDelete(SavedCard card) {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Delete card")
+                    .setMessage("Delete \"" + card.name + "\"?")
+                    .setPositiveButton("Delete", (d, w) -> {
+                        executor.execute(() -> {
+                            db.savedCardDao().delete(card);
+                            runOnSafeUi(activity -> {
+                                if (card.id == selectedCardId) {
+                                    selectedCardId = -1;
+                                    adapter.setSelectedCardId(-1);
+                                    updateMasterSwitchState();
+                                    if (isSimulating) doRestore();
+                                }
+                                refreshSavedCards();
+                            });
+                        });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            }
+
+            @Override
+            public void onRename(SavedCard card) {
+                showRenameDialog(card);
+            }
+        });
+
+        savedCardsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        savedCardsRecyclerView.setAdapter(adapter);
+
+        masterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return;
+            if (isChecked) {
+                if (selectedCardId == -1) {
+                    masterSwitch.setChecked(false);
+                    Toast.makeText(this, "Select a card first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String uid = prefs.getValue("SERIAL_NUMBER", null);
+                if (uid == null) {
+                    masterSwitch.setChecked(false);
+                    return;
+                }
+                doSimulate(uid, selectedCardId);
+            } else {
+                doRestore();
+            }
+        });
+
+        btnScan.setOnClickListener(v -> {
+            nfcScanner.startScan(this);
+            toggleScanning(true);
+        });
+
+        btnSaveCard.setOnClickListener(v -> {
+            String uid = prefs.getValue("SERIAL_NUMBER", null);
+            if (uid == null || uid.equals(getString(R.string.DEFAULT_SERIAL_NUMBER))) {
+                Toast.makeText(this, "Scan a card first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showSaveDialog(uid);
+        });
+
+        if (cardEmulator.isSimulating()) {
+            isSimulating = true;
+            updateSimulatingUI(true);
+        }
+
+        refreshSavedCards();
+        updateMasterSwitchState();
     }
 
     private void setLoading(boolean isLoading) {
+        // Optionally show/hide a progress indicator here
+        // For now just toggle the main content visibility
+        View content = findViewById(R.id.savedCardsRecyclerView);
+        if (content != null) {
+            content.setVisibility(isLoading ? View.INVISIBLE : View.VISIBLE);
+        }
     }
 
+    private void updateMasterSwitchState() {
+        boolean hasSelection = selectedCardId != -1;
+        masterSwitch.setEnabled(hasSelection);
+        masterToggleSubtext.setText(hasSelection
+                ? getString(R.string.TOGGLE_TO_EMULATE)
+                : getString(R.string.SELECT_CARD_FIRST));
+    }
+
+    private void doSimulate(String serialNumber, int cardId) {
+        if (!cardEmulator.simulate(serialNumber)) {
+            Toast.makeText(this, "Failed to simulate card =(", Toast.LENGTH_SHORT).show();
+            masterSwitch.setChecked(false);
+            return;
+        }
+        isSimulating = true;
+        activeCardId = cardId;
+        adapter.setSelectedCardId(cardId);
+        updateSimulatingUI(true);
+    }
+
+    private void doRestore() {
+        if (!cardEmulator.restore()) {
+            Toast.makeText(this, "Failed to restore NFC =(", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        isSimulating = false;
+        activeCardId = -1;
+        updateSimulatingUI(false);
+    }
+
+    private void updateSimulatingUI(boolean simulating) {
+        statusText.setText(simulating ? R.string.SIMULATING : R.string.IDLE);
+        masterToggleSubtext.setText(simulating
+                ? getString(R.string.EMULATING_NOW)
+                : getString(R.string.TOGGLE_TO_EMULATE));
+
+        masterSwitch.setOnCheckedChangeListener(null);
+        masterSwitch.setChecked(simulating);
+        masterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return;
+            if (isChecked) {
+                String uid = prefs.getValue("SERIAL_NUMBER", null);
+                if (uid != null) doSimulate(uid, selectedCardId);
+            } else {
+                doRestore();
+            }
+        });
+
+        if (simulating)
+            statusIcon.startAnimation(pulseAnimation);
+        else
+            statusIcon.clearAnimation();
+    }
+
+    private void toggleScanning(boolean state) {
+        if (state) {
+            statusText.setText(R.string.SCANNING);
+            statusIcon.startAnimation(pulseAnimation);
+        } else {
+            statusText.setText(isSimulating ? R.string.SIMULATING : R.string.IDLE);
+            statusIcon.clearAnimation();
+        }
+    }
+
+    private void refreshSavedCards() {
+        executor.execute(() -> {
+            List<SavedCard> cards = db.savedCardDao().getAll();
+            runOnSafeUi(activity -> {
+                adapter.setCards(cards);
+                emptyCardsText.setVisibility(cards.isEmpty() ? View.VISIBLE : View.GONE);
+            });
+        });
+    }
+
+    private void showSaveDialog(String uid) {
+        EditText input = new EditText(this);
+        input.setHint(getString(R.string.CARD_NAME_HINT));
+        input.setPadding(48, 24, 48, 24);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Save card")
+            .setView(input)
+            .setPositiveButton("Save", (d, w) -> {
+                String userInput = input.getText().toString().trim();
+                executor.execute(() -> {
+                    String name = userInput.isEmpty()
+                            ? "Card " + (adapter.getItemCount() + 1)
+                            : userInput;
+                    db.savedCardDao().insert(new SavedCard(name, uid));
+                    runOnSafeUi(activity -> refreshSavedCards());
+                });
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void showRenameDialog(SavedCard card) {
+        EditText input = new EditText(this);
+        input.setText(card.name);
+        input.setPadding(48, 24, 48, 24);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Rename card")
+            .setView(input)
+            .setPositiveButton("Save", (d, w) -> {
+                String name = input.getText().toString().trim();
+                if (!name.isEmpty()) {
+                    executor.execute(() -> {
+                        card.name = name;
+                        db.savedCardDao().update(card);
+                        runOnSafeUi(activity -> refreshSavedCards());
+                    });
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
+        if (nfcScanner != null) {
+            nfcScanner.stopScan(this);
+        }
+    }
 }
