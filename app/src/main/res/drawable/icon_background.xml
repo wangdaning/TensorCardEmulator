@@ -7,5 +7,5 @@
 	
     <path
         android:pathData="M22,21h109v107h-109z"
-        android:fillColor="?attr/colorSurfaceContainer" />
+        android:fillColor="@color/md_theme_surfaceVariant" />
 </vector>
