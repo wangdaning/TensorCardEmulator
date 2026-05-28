@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             List<SavedCard> cards = db.savedCardDao().getAll();
             runOnSafeUi(activity -> {
-                adapter.setCards(cards);
+                adapter.submitList(cards);
                 emptyCardsText.setVisibility(cards.isEmpty() ? View.VISIBLE : View.GONE);
             });
         });
