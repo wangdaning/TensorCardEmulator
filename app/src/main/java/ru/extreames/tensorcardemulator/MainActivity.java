@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         pulseAnimation.setRepeatMode(Animation.REVERSE);
 
         serialTextView.setText(prefs.getValue("SERIAL_NUMBER",
-                getString(R.string.DEFAULT_SERIAL_NUMBER)));
+                getString(R.string.default_serial_number)));
 
         nfcScanner = new NFCScanner(this, serialNumber -> runOnSafeUi(activity -> {
             prefs.setValue("SERIAL_NUMBER", serialNumber);
@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnSaveCard.setOnClickListener(v -> {
             String uid = prefs.getValue("SERIAL_NUMBER", null);
-            if (uid == null || uid.equals(getString(R.string.DEFAULT_SERIAL_NUMBER))) {
+            if (uid == null || uid.equals(getString(R.string.default_serial_number))) {
                 Toast.makeText(this, "Scan a card first", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -235,8 +235,8 @@ public class MainActivity extends AppCompatActivity {
         boolean hasSelection = selectedCardId != -1;
         masterSwitch.setEnabled(hasSelection);
         masterToggleSubtext.setText(hasSelection
-                ? getString(R.string.TOGGLE_TO_EMULATE)
-                : getString(R.string.SELECT_CARD_FIRST));
+                ? getString(R.string.toggle_to_emulate)
+                : getString(R.string.select_card_first));
     }
 
     private void doSimulate(String serialNumber, int cardId) {
@@ -262,10 +262,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateSimulatingUI(boolean simulating) {
-        statusText.setText(simulating ? R.string.SIMULATING : R.string.IDLE);
+        statusText.setText(getString(simulating ? R.string.simulating : R.string.idle));
         masterToggleSubtext.setText(simulating
-                ? getString(R.string.EMULATING_NOW)
-                : getString(R.string.TOGGLE_TO_EMULATE));
+                ? getString(R.string.emulating_now)
+                : getString(R.string.toggle_to_emulate));
 
         masterSwitch.setOnCheckedChangeListener(null);
         masterSwitch.setChecked(simulating);
@@ -287,10 +287,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void toggleScanning(boolean state) {
         if (state) {
-            statusText.setText(R.string.SCANNING);
+            statusText.setText(getString(R.string.scanning));
             statusIcon.startAnimation(pulseAnimation);
         } else {
-            statusText.setText(isSimulating ? R.string.SIMULATING : R.string.IDLE);
+            statusText.setText(getString(isSimulating ? R.string.simulating : R.string.idle));
             statusIcon.clearAnimation();
         }
     }
@@ -307,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSaveDialog(String uid) {
         EditText input = new EditText(this);
-        input.setHint(getString(R.string.CARD_NAME_HINT));
+        input.setHint(getString(R.string.card_name_hint));
         input.setPadding(48, 24, 48, 24);
 
         new AlertDialog.Builder(this)
