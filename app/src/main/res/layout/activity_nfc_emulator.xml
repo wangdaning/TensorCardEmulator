@@ -63,9 +63,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:theme="@style/ThemeOverlay.Material3.Dark"
-                android:textOn=""
-                android:textOff=""
+                app:materialThemeOverlay="@style/ThemeOverlay.Material3.Dark"
+                android:textOn="@string/empty"
+                android:textOff="@string/empty"
                 app:showText="false" />
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
