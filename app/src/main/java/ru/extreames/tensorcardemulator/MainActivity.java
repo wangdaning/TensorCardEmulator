@@ -223,8 +223,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setLoading(boolean isLoading) {
-        // Optionally show/hide a progress indicator here
-        // For now just toggle the main content visibility
         View content = findViewById(R.id.savedCardsRecyclerView);
         if (content != null) {
             content.setVisibility(isLoading ? View.INVISIBLE : View.VISIBLE);

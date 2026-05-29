@@ -93,18 +93,37 @@ public class Shell {
     }
 
     public static boolean restartNFC() {
-        try {
-            Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc disable"}).waitFor();
-            Thread.sleep(500);
-            Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc enable"}).waitFor();
-            Thread.sleep(1000);
-            
-            Runtime.getRuntime().exec(new String[]{"su", "-c", "killall android.hardware.nfc-service.st"}).waitFor();
-            return true;
-        } catch (Exception e) {
-            return false;
+    try {
+        String[] halNames = {
+            "android.hardware.nfc-service.st",
+            "android.hardware.nfc-service.nxp",
+            "android.hardware.nfc@1.2-service",
+            "android.hardware.nfc-service",
+            "vendor.samsung.hardware.nfc"
+        };
+
+        for (String name : halNames) {
+            Runtime.getRuntime().exec(
+                new String[]{"su", "-c", "killall " + name}
+            ).waitFor();
         }
+
+        Thread.sleep(1500);
+        return true;
+    } catch (Exception e) {
+        return false;
     }
+}
+
+	public static boolean runCommand(String command) {
+    try {
+        Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", command});
+        return process.waitFor() == 0;
+    } catch (Exception e) {
+        return false;
+    }
+}
+
 
     private static String escapeShellArg(String arg) {
         return "'" + arg.replace("'", "'\\''") + "'";

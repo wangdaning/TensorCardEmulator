@@ -3,50 +3,29 @@ package ru.extreames.tensorcardemulator.nfc;
 import ru.extreames.tensorcardemulator.root.Shell;
 
 public class CardEmulator {
-    
-    private static final String PATH_NFC_NCI_CONFIG = "/vendor/etc/libnfc-nci.conf";
-    private static final String PATH_NFC_NCI_CONFIG_BAK = "/data/local/tmp/libnfc-nci.conf.bak";
+
+    private static final String PATH_NFC_CONFIG = "/data/vendor/nfc/libnfc-nci.conf";
+    private static final String PATH_NFC_CONFIG_BAK = "/data/adb/TensorCardEmulator/libnfc-nci.conf.bak";
 
     public boolean isSimulating() {
-        return Shell.fileExists(PATH_NFC_NCI_CONFIG_BAK);
+        return Shell.fileExists(PATH_NFC_CONFIG_BAK);
     }
 
     public boolean simulate(String serialNumber) {
         try {
-            if (!Shell.fileExists(PATH_NFC_NCI_CONFIG_BAK)) {
-                Shell.copyFile(PATH_NFC_NCI_CONFIG, PATH_NFC_NCI_CONFIG_BAK);
+            Shell.runCommand("mkdir -p /data/adb/TensorCardEmulator");
+            if (!Shell.fileExists(PATH_NFC_CONFIG_BAK)) {
+                Shell.copyFile(PATH_NFC_CONFIG, PATH_NFC_CONFIG_BAK);
             }
 
-            String originalConfig = Shell.readFile(PATH_NFC_NCI_CONFIG);
             String dmCfg = buildNfaDmStartUpCfg(serialNumber);
             StringBuilder newConfig = new StringBuilder();
-            
-            boolean foundDm = false;
-            boolean foundListen = false;
-            boolean foundUidMarker = false;
+            newConfig.append("## NFC_EMU_UID_OVERRIDE\n");
+            newConfig.append("NFA_DM_START_UP_CFG=").append(dmCfg).append("\n");
+            newConfig.append("## NFC_EMU_LISTEN_OVERRIDE\n");
+            newConfig.append("NFA_LISTEN_TECH_MASK=0x07 # nfcemu\n");
 
-            for (String line : originalConfig.split("\n")) {
-                String trimmed = line.trim();
-                
-                if (trimmed.startsWith("## NFC_EMU_UID_OVERRIDE")) {
-                    foundUidMarker = true;
-                    newConfig.append(line).append("\n");
-                } else if (trimmed.startsWith("NFA_DM_START_UP_CFG")) {
-                    newConfig.append("NFA_DM_START_UP_CFG=").append(dmCfg).append("\n");
-                    foundDm = true;
-                } else if (trimmed.startsWith("NFA_LISTEN_TECH_MASK")) {
-                    newConfig.append("NFA_LISTEN_TECH_MASK=0x07 # nfcemu\n");
-                    foundListen = true;
-                } else {
-                    newConfig.append(line).append("\n");
-                }
-            }
-
-            if (!foundUidMarker) newConfig.insert(0, "## NFC_EMU_UID_OVERRIDE\n");
-            if (!foundDm) newConfig.append("NFA_DM_START_UP_CFG=").append(dmCfg).append("\n");
-            if (!foundListen) newConfig.append("NFA_LISTEN_TECH_MASK=0x07 # nfcemu\n");
-
-            Shell.writeFile(PATH_NFC_NCI_CONFIG, newConfig.toString());
+            Shell.writeFile(PATH_NFC_CONFIG, newConfig.toString());
             return killNFC();
         } catch (Exception e) {
             return false;
@@ -55,13 +34,10 @@ public class CardEmulator {
 
     public boolean restore() {
         try {
-            if (Shell.fileExists(PATH_NFC_NCI_CONFIG_BAK)) {
-                Shell.copyFile(PATH_NFC_NCI_CONFIG_BAK, PATH_NFC_NCI_CONFIG);
-                
-                Process process = Runtime.getRuntime().exec(new String[]{"su", "-c", "rm " + PATH_NFC_NCI_CONFIG_BAK});
-                process.waitFor();
-                process.destroy();
-                
+            if (Shell.fileExists(PATH_NFC_CONFIG_BAK)) {
+                Shell.copyFile(PATH_NFC_CONFIG_BAK, PATH_NFC_CONFIG);
+                Shell.runCommand("rm -f " + PATH_NFC_CONFIG_BAK);
+                Shell.runCommand("rm -f /data/vendor/nfc/libnfc-nci.conf.nfcemu.bak");
                 return killNFC();
             }
             return true;
@@ -75,6 +51,25 @@ public class CardEmulator {
     }
 
     private String buildNfaDmStartUpCfg(String uid) {
-        return "{12:CB:01:01:A5:07:01:02:03:04:" + uid + "}";
+        String[] hexParts = uid.split(":");
+        int uidLen = hexParts.length;
+        int totalLen = 1 + 9 + 2 + uidLen; 
+
+        StringBuilder sb = new StringBuilder("{ ");
+        sb.append(String.format("%02X, ", 0x20));
+        sb.append(String.format("%02X, ", 0x02));
+        sb.append(String.format("%02X, ", totalLen));
+        sb.append(String.format("%02X, ", 0x04)); // 4 params
+        sb.append(String.format("%02X, %02X, %02X, ", 0x30, 0x01, 0x04));
+        sb.append(String.format("%02X, %02X, %02X, ", 0x31, 0x01, 0x00));
+        sb.append(String.format("%02X, %02X, %02X, ", 0x32, 0x01, 0x08));
+        sb.append(String.format("%02X, %02X", 0x33, uidLen));
+
+        for (String part : hexParts) {
+            sb.append(String.format(", %02X", Integer.parseInt(part, 16)));
+        }
+
+        sb.append(" }");
+        return sb.toString();
     }
 }
