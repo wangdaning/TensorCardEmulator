@@ -92,49 +92,23 @@ public class Shell {
         }
     }
 
-    public static boolean restartNFC() {
-        try {
-            String[] halNames = {
-                "android.hardware.nfc-service.st",
-                "android.hardware.nfc-service.nxp",
-                "android.hardware.nfc@1.2-service",
-                "android.hardware.nfc-service",
-                "vendor.samsung.hardware.nfc"
-            };
+	public static boolean restartNFC() {
+    	try {
+       		 Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc disable"}).waitFor();
+        	 Thread.sleep(800);
 
-            boolean killed = false;
-            for (String name : halNames) {
-                Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", "killall " + name});
-                if (p.waitFor() == 0) {
-                    killed = true;
-                }
-                p.destroy();
-            }
+        Runtime.getRuntime().exec(new String[]{"su", "-c",
+            "killall android.hardware.nfc-service.st"}).waitFor();
+        	 Thread.sleep(2000);
 
-            Thread.sleep(2500);
+        Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc enable"}).waitFor();
+        	Thread.sleep(1500);
 
-            boolean serviceRunning = false;
-            for (String name : halNames) {
-                String checkCmd = "pgrep " + name;
-                Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", checkCmd});
-                if (p.waitFor() == 0) {
-                    serviceRunning = true;
-                    p.destroy();
-                    break;
-                }
-                p.destroy();
-            }
-
-            if (killed && !serviceRunning) {
-                Runtime.getRuntime().exec(new String[]{"su", "-c", "svc nfc enable"}).waitFor();
-                Thread.sleep(1000);
-            }
-
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+        	 return true;
+   		 } catch (Exception e) {
+       		 return false;
+    	}
+	}
 
     public static boolean runCommand(String command) {
         try {
