@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "TensorCardEmulator"
 include(":app")
+include(":xposed")
  
