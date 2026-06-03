@@ -3,7 +3,6 @@ package ru.extreames.tensorcardemulator.xposed;
 import androidx.annotation.NonNull;
 
 import io.github.libxposed.api.XposedModule;
-import io.github.libxposed.api.XC_MethodHook;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -35,14 +34,12 @@ public class NfcUidHook extends XposedModule {
             Class<?> tagClass = param.getClassLoader().loadClass("android.nfc.Tag");
             Method getId = tagClass.getDeclaredMethod("getId");
             
-            findAndHookMethod(getId, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    byte[] spoofed = getSpoofedUidBytes();
-                    if (spoofed != null) {
-                        param.setResult(spoofed);
-                    }
+            hook(getId).intercept(chain -> {
+                byte[] spoofed = getSpoofedUidBytes();
+                if (spoofed != null) {
+                    return spoofed;
                 }
+                return chain.proceed();
             });
             
             logD("Hooked Tag.getId()");
@@ -54,14 +51,12 @@ public class NfcUidHook extends XposedModule {
             Class<?> nativeTag = param.getClassLoader().loadClass("com.android.nfc.dhimpl.NativeNfcTag");
             for (Method m : nativeTag.getDeclaredMethods()) {
                 if (m.getName().equals("getUid") || m.getName().equals("uid")) {
-                    findAndHookMethod(m, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            byte[] spoofed = getSpoofedUidBytes();
-                            if (spoofed != null) {
-                                param.setResult(spoofed);
-                            }
+                    hook(m).intercept(chain -> {
+                        byte[] spoofed = getSpoofedUidBytes();
+                        if (spoofed != null) {
+                            return spoofed;
                         }
+                        return chain.proceed();
                     });
                     logD("Hooked NativeNfcTag." + m.getName());
                 }
