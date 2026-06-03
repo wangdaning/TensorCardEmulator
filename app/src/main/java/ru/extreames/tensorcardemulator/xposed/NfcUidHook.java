@@ -1,5 +1,6 @@
 package ru.extreames.tensorcardemulator.xposed;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 
 import io.github.libxposed.api.XposedModule;
@@ -9,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Scanner;
 
 public class NfcUidHook extends XposedModule {
+    private static final String TAG = "NfcUidHook";
 
     public NfcUidHook() {
         super();
@@ -18,7 +20,7 @@ public class NfcUidHook extends XposedModule {
     public void onPackageLoaded(@NonNull PackageLoadedParam param) {
         super.onPackageLoaded(param);
         if (param.getPackageName().equals("com.android.nfc")) {
-            logD("NFC process loaded");
+            Log.d(TAG, "NFC process loaded");
         }
     }
 
@@ -28,7 +30,7 @@ public class NfcUidHook extends XposedModule {
 
         if (!param.getPackageName().equals("com.android.nfc")) return;
 
-        logD("NFC process ready, applying hooks");
+        Log.d(TAG, "NFC process ready, applying hooks");
 
         try {
             Class<?> tagClass = param.getClassLoader().loadClass("android.nfc.Tag");
@@ -42,9 +44,9 @@ public class NfcUidHook extends XposedModule {
                 return chain.proceed();
             });
             
-            logD("Hooked Tag.getId()");
+            Log.d(TAG, "Hooked Tag.getId()");
         } catch (Throwable e) {
-            logE("Tag.getId() hook failed: " + e.getMessage());
+            Log.e(TAG, "Tag.getId() hook failed: " + e.getMessage());
         }
 
         try {
@@ -58,11 +60,11 @@ public class NfcUidHook extends XposedModule {
                         }
                         return chain.proceed();
                     });
-                    logD("Hooked NativeNfcTag." + m.getName());
+                    Log.d(TAG, "Hooked NativeNfcTag." + m.getName());
                 }
             }
         } catch (Throwable e) {
-            logE("NativeNfcTag hook failed: " + e.getMessage());
+            Log.e(TAG, "NativeNfcTag hook failed: " + e.getMessage());
         }
     }
 
