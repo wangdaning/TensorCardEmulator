@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.libxposed)
+    compileOnly(libs.libxposed)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation("androidx.recyclerview:recyclerview:1.3.2")
