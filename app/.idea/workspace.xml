@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="NONE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="458cacb7-039e-4858-9027-a62bd20f221e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../xposed/build.gradle.kts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/AndroidManifest.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/assets/xposed_init" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/java/ru/extreames/tensorcardemulator/xposed/NfcUidHook.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/res/values/arrays.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/resources/META-INF/xposed/java_init.list" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/resources/META-INF/xposed/module.prop" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../xposed/src/main/resources/META-INF/xposed/scope.list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/ru/extreames/tensorcardemulator/xposed/NfcUidHook.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/ru/extreames/tensorcardemulator/xposed/NfcUidHook.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/xposed/module.prop" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/xposed/module.prop" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../gradle/libs.versions.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../settings.gradle.kts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 4,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3EblmNs53kMlY3DemVKTEeAh8Bz" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "android.gradle.sync.needed": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "Merging xposed",
+    "kotlin-language-version-configured": "true"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="458cacb7-039e-4858-9027-a62bd20f221e" name="Changes" comment="" />
+      <created>1780455308651</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1780455308651</updated>
+    </task>
+    <servers />
+  </component>
+</project>
