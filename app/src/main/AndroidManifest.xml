@@ -27,6 +27,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Xposed Module Metadata (Legacy Style for compatibility) -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="NFC UID spoofer for TensorCardEmulator" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="93" />
+
         <service
             android:name=".MyHostApduService"
             android:exported="true"
