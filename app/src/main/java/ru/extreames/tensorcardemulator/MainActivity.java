@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import ru.extreames.tensorcardemulator.adapter.SavedCardsAdapter;
 import ru.extreames.tensorcardemulator.model.AppDatabase;
 import ru.extreames.tensorcardemulator.model.SavedCard;
+import ru.extreames.tensorcardemulator.nfc.CardEmulator;
 import ru.extreames.tensorcardemulator.nfc.NFCScanner;
 import ru.extreames.tensorcardemulator.prefs.PrefsManager;
 import ru.extreames.tensorcardemulator.root.Shell;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AlphaAnimation pulseAnimation;
     private AppDatabase db;
+    private CardEmulator cardEmulator;
     private PrefsManager prefs;
     private NFCScanner nfcScanner;
     private SavedCardsAdapter adapter;
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeApp() {
         db = AppDatabase.getInstance(this);
+        cardEmulator = new CardEmulator();
         prefs = new PrefsManager(this, "SAVED_CARD");
 
         pulseAnimation = new AlphaAnimation(1.0f, 0.4f);
@@ -210,10 +213,9 @@ public class MainActivity extends AppCompatActivity {
             showSaveDialog(uid);
         });
 
-        if (Shell.fileExists("/data/local/tmp/nfc_spoof_uid")) {
+        if (cardEmulator.isSimulating()) {
             isSimulating = true;
             updateSimulatingUI(true);
-            // Optionally try to find which card it is, or just leave activeCardId as -1
         }
 
         refreshSavedCards();
@@ -236,10 +238,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doSimulate(String serialNumber, int cardId) {
-        // Write UID for Xposed hook to read
-        Shell.runCommand("echo '" + serialNumber + "' > /data/local/tmp/nfc_spoof_uid");
-        Shell.runCommand("chmod 644 /data/local/tmp/nfc_spoof_uid");
-
+        if (!cardEmulator.simulate(serialNumber)) {
+            Toast.makeText(this, "Failed to simulate card =(", Toast.LENGTH_SHORT).show();
+            masterSwitch.setChecked(false);
+            return;
+        }
         isSimulating = true;
         activeCardId = cardId;
         adapter.setSelectedCardId(cardId);
@@ -247,8 +250,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doRestore() {
-        Shell.runCommand("rm -f /data/local/tmp/nfc_spoof_uid");
-
+        if (!cardEmulator.restore()) {
+            Toast.makeText(this, "Failed to restore NFC =(", Toast.LENGTH_SHORT).show();
+            return;
+        }
         isSimulating = false;
         activeCardId = -1;
         updateSimulatingUI(false);

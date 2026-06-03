@@ -32,14 +32,14 @@
             android:name="xposedmodule"
             android:value="true" />
         <meta-data
-            android:name="xposed_description"
+            android:name="xposeddescription"
             android:value="NFC UID spoofer for TensorCardEmulator" />
         <meta-data
-            android:name="xposed_min_version"
+            android:name="xposedminversion"
             android:value="93" />
         <meta-data
-            android:name="xposed_version"
-            android:value="1" />
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope" />
 
         <service
             android:name=".MyHostApduService"

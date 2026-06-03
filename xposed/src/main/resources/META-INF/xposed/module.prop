@@ -1,6 +1,0 @@
-name=TensorCardEmulator Xposed
-version=1
-versionCode=1
-author=Extreames
-description=NFC UID spoofer for TensorCardEmulator
-minApiVersion=100
