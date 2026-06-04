@@ -2,8 +2,10 @@ package ru.extreames.tensorcardemulator.xposed;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import io.github.libxposed.api.XposedModule;
+import io.github.libxposed.api.XposedInterface;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -36,12 +38,16 @@ public class NfcUidHook extends XposedModule {
             Class<?> tagClass = param.getClassLoader().loadClass("android.nfc.Tag");
             Method getId = tagClass.getDeclaredMethod("getId");
             
-            hook(getId).intercept(chain -> {
-                byte[] spoofed = getSpoofedUidBytes();
-                if (spoofed != null) {
-                    return spoofed;
+            hook(getId).intercept(new XposedInterface.Hooker() {
+                @Nullable
+                @Override
+                public Object intercept(@NonNull XposedInterface.Chain chain) throws Throwable {
+                    byte[] spoofed = getSpoofedUidBytes();
+                    if (spoofed != null) {
+                        return spoofed;
+                    }
+                    return chain.proceed();
                 }
-                return chain.proceed();
             });
             
             Log.d(TAG, "Hooked Tag.getId()");
@@ -53,12 +59,16 @@ public class NfcUidHook extends XposedModule {
             Class<?> nativeTag = param.getClassLoader().loadClass("com.android.nfc.dhimpl.NativeNfcTag");
             for (Method m : nativeTag.getDeclaredMethods()) {
                 if (m.getName().equals("getUid") || m.getName().equals("uid")) {
-                    hook(m).intercept(chain -> {
-                        byte[] spoofed = getSpoofedUidBytes();
-                        if (spoofed != null) {
-                            return spoofed;
+                    hook(m).intercept(new XposedInterface.Hooker() {
+                        @Nullable
+                        @Override
+                        public Object intercept(@NonNull XposedInterface.Chain chain) throws Throwable {
+                            byte[] spoofed = getSpoofedUidBytes();
+                            if (spoofed != null) {
+                                return spoofed;
+                            }
+                            return chain.proceed();
                         }
-                        return chain.proceed();
                     });
                     Log.d(TAG, "Hooked NativeNfcTag." + m.getName());
                 }

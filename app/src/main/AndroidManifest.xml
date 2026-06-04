@@ -8,19 +8,6 @@
     
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
-    <meta-data
-        android:name="xposedmodule"
-        android:value="true" />
-    <meta-data
-        android:name="xposeddescription"
-        android:value="NFC UID spoofer for TensorCardEmulator" />
-    <meta-data
-        android:name="xposedminversion"
-        android:value="100" />
-    <meta-data
-        android:name="xposedmoduleclass"
-        android:value="ru.extreames.tensorcardemulator.xposed.NfcUidHook" />
-    
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -39,6 +26,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Xposed Module Metadata -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="NFC UID spoofer for TensorCardEmulator" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="93" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope" />
 
         <service
             android:name=".MyHostApduService"
