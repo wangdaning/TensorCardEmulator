@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "ru.extreames.tensorcardemulator"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ru.extreames.tensorcardemulator"
         minSdk = 34
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    compileOnly("de.robv.android.xposed:api:82")
+    compileOnly(libs.libxposed)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation("androidx.recyclerview:recyclerview:1.3.2")

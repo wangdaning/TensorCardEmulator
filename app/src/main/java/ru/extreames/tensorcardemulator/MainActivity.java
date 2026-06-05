@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!root) {
                     new AlertDialog.Builder(activity)
                         .setTitle("Root Required")
-                        .setMessage("This app requires root access to modify NFC configurations. Please grant root and restart.")
+                        .setMessage("This app requires root access to manage NFC spoofing. Please grant root and restart.")
                         .setCancelable(false)
                         .setPositiveButton("Exit", (d, w) -> activity.finish())
                         .show();

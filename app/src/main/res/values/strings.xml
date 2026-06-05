@@ -29,5 +29,8 @@
     <string name="toggle_to_emulate">Toggle to start emulating</string>
     <string name="emulating_now">Emulating card…</string>
     <string name="empty"></string>
-    <string name="xposed_description">NFC UID spoofer for TensorCardEmulator</string>
+
+    <string-array name="xposed_scope">
+        <item>com.android.nfc</item>
+    </string-array>
 </resources>
