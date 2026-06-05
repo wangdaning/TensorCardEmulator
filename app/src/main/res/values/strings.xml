@@ -32,5 +32,6 @@
 
     <string-array name="xposed_scope">
         <item>com.android.nfc</item>
+        <item>com.google.android.nfc</item>
     </string-array>
 </resources>

@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
                 serialTextView.setText(card.uid);
                 updateMasterSwitchState();
                 if (isSimulating) {
-                    doRestore();
                     doSimulate(card.uid, card.id);
                 }
             }
@@ -235,22 +234,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doSimulate(String serialNumber, int cardId) {
-        // Write UID for Xposed hook to read
-        Shell.runCommand("echo '" + serialNumber + "' > /data/local/tmp/nfc_spoof_uid");
-        Shell.runCommand("chmod 644 /data/local/tmp/nfc_spoof_uid");
-
-        isSimulating = true;
-        activeCardId = cardId;
-        adapter.setSelectedCardId(cardId);
-        updateSimulatingUI(true);
+        executor.execute(() -> {
+            // Write UID for Xposed hook to read
+            // Using a simple command to ensure compatibility
+            String cmd = "echo '" + serialNumber + "' > /data/local/tmp/nfc_spoof_uid && chmod 666 /data/local/tmp/nfc_spoof_uid";
+            Shell.runCommand(cmd);
+            
+            // Restart NFC to clear any cached tags and force hook re-injection if process died
+            Shell.restartNFC();
+            
+            runOnSafeUi(activity -> {
+                activity.isSimulating = true;
+                activity.activeCardId = cardId;
+                activity.adapter.setSelectedCardId(cardId);
+                activity.updateSimulatingUI(true);
+                Toast.makeText(activity, "Simulation started", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     private void doRestore() {
-        Shell.runCommand("rm -f /data/local/tmp/nfc_spoof_uid");
-
-        isSimulating = false;
-        activeCardId = -1;
-        updateSimulatingUI(false);
+        executor.execute(() -> {
+            Shell.runCommand("rm -f /data/local/tmp/nfc_spoof_uid");
+            Shell.restartNFC();
+            
+            runOnSafeUi(activity -> {
+                activity.isSimulating = false;
+                activity.activeCardId = -1;
+                activity.updateSimulatingUI(false);
+                Toast.makeText(activity, "Simulation stopped", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     private void updateSimulatingUI(boolean simulating) {
