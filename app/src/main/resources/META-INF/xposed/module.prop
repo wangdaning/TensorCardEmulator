@@ -1,7 +1,0 @@
-id=ru.extreames.tensorcardemulator
-name=TensorCardEmulator
-version=1.0.1
-versionCode=101
-author=wangdaning
-description=NFC UID spoofer for TensorCardEmulator
-minApiVersion=100

@@ -28,13 +28,13 @@
             </intent-filter>
         </activity>
 
-        <!-- Xposed Module Metadata -->
+        <!-- Xposed Module Metadata (Classic Style) -->
         <meta-data
             android:name="xposedmodule"
             android:value="true" />
         <meta-data
             android:name="xposeddescription"
-            android:resource="@string/xposed_description" />
+            android:value="NFC UID spoofer for TensorCardEmulator" />
         <meta-data
             android:name="xposedminversion"
             android:value="93" />

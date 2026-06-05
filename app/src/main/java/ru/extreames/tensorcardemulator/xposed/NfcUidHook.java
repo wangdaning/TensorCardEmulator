@@ -1,80 +1,55 @@
 package ru.extreames.tensorcardemulator.xposed;
 
 import android.util.Log;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import io.github.libxposed.api.XposedModule;
-import io.github.libxposed.api.XposedInterface;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Scanner;
 
-public class NfcUidHook extends XposedModule {
-    private static final String TAG = "NfcUidHook";
+import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-    public NfcUidHook() {
-        super();
-    }
-
-    @Override
-    public void onPackageLoaded(@NonNull PackageLoadedParam param) {
-        super.onPackageLoaded(param);
-        if (param.getPackageName().equals("com.android.nfc")) {
-            Log.d(TAG, "NFC process loaded");
-        }
-    }
+public class NfcUidHook implements IXposedHookLoadPackage {
+    private static final String TAG = "TensorCardEmulator";
 
     @Override
-    public void onPackageReady(@NonNull PackageReadyParam param) {
-        super.onPackageReady(param);
-
-        if (!param.getPackageName().equals("com.android.nfc")) return;
-
-        Log.d(TAG, "NFC process ready, applying hooks");
-
-        try {
-            Class<?> tagClass = param.getClassLoader().loadClass("android.nfc.Tag");
-            Method getId = tagClass.getDeclaredMethod("getId");
-            
-            hook(getId).intercept(new XposedInterface.Hooker() {
-                @Nullable
-                @Override
-                public Object intercept(@NonNull XposedInterface.Chain chain) throws Throwable {
-                    byte[] spoofed = getSpoofedUidBytes();
-                    if (spoofed != null) {
-                        return spoofed;
-                    }
-                    return chain.proceed();
-                }
-            });
-            
-            Log.d(TAG, "Hooked Tag.getId()");
-        } catch (Throwable e) {
-            Log.e(TAG, "Tag.getId() hook failed: " + e.getMessage());
+    public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
+        if (!lpparam.packageName.equals("com.android.nfc")) {
+            return;
         }
 
-        try {
-            Class<?> nativeTag = param.getClassLoader().loadClass("com.android.nfc.dhimpl.NativeNfcTag");
-            for (Method m : nativeTag.getDeclaredMethods()) {
-                if (m.getName().equals("getUid") || m.getName().equals("uid")) {
-                    hook(m).intercept(new XposedInterface.Hooker() {
-                        @Nullable
-                        @Override
-                        public Object intercept(@NonNull XposedInterface.Chain chain) throws Throwable {
-                            byte[] spoofed = getSpoofedUidBytes();
-                            if (spoofed != null) {
-                                return spoofed;
-                            }
-                            return chain.proceed();
-                        }
-                    });
-                    Log.d(TAG, "Hooked NativeNfcTag." + m.getName());
+        XposedBridge.log("TensorCardEmulator: Hooking com.android.nfc");
+
+        // Hook 1: android.nfc.Tag.getId()
+        XposedHelpers.findAndHookMethod("android.nfc.Tag", lpparam.classLoader, "getId", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                byte[] spoofed = getSpoofedUidBytes();
+                if (spoofed != null) {
+                    param.setResult(spoofed);
                 }
             }
+        });
+
+        // Hook 2: NativeNfcTag getUid/uid
+        try {
+            Class<?> nativeTag = XposedHelpers.findClass("com.android.nfc.dhimpl.NativeNfcTag", lpparam.classLoader);
+            XC_MethodHook nativeHook = new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    byte[] spoofed = getSpoofedUidBytes();
+                    if (spoofed != null) {
+                        param.setResult(spoofed);
+                    }
+                }
+            };
+
+            XposedHelpers.findAndHookMethod(nativeTag, "getUid", nativeHook);
+            XposedHelpers.findAndHookMethod(nativeTag, "uid", nativeHook);
         } catch (Throwable e) {
-            Log.e(TAG, "NativeNfcTag hook failed: " + e.getMessage());
+            XposedBridge.log("TensorCardEmulator: NativeNfcTag hook failed: " + e.getMessage());
         }
     }
 
